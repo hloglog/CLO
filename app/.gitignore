@@ -1,1 +1,16 @@
-/build
+# Gradle Build
+**/build/
+.gradle/
+
+# Firebase
+google-services.json
+
+# Android SDK 경로
+local.properties
+
+# IDE (Android Studio)
+.idea/
+*.iml
+
+# macOS
+.DS_Store
