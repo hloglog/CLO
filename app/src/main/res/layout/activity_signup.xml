@@ -55,31 +55,30 @@
             android:layout_marginTop="16dp"
             android:background="@drawable/edit_text_background"
             android:hint="비밀번호 확인"
-            android:textColorHint="@color/white"
-            android:textColor="@color/white"
+            android:textColorHint="#888787"
+            android:textColor="@color/black"
             android:inputType="textPassword"
-            android:padding="16dp"
-            android:visibility="gone" />
+            android:padding="16dp" />
 
         <Button
-            android:id="@+id/btnLogin"
+            android:id="@+id/btnSignUp"
             android:layout_width="330dp"
             android:layout_height="67dp"
             android:layout_marginTop="32dp"
             android:backgroundTint="#888787"
-            android:text="로그인"
+            android:text="회원가입"
             android:textColor="@color/white" />
 
         <TextView
-            android:id="@+id/tvSwitchToSignUp"
+            android:id="@+id/tvSwitchToLogin"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:text="회원가입으로 이동"
+            android:text="로그인으로 이동"
             android:textColor="#888787"
             android:textSize="20sp"
             android:fontFamily="@font/notable_regular" />
 
     </LinearLayout>
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.constraintlayout.widget.ConstraintLayout> 
