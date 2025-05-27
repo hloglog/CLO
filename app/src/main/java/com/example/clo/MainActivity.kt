@@ -17,5 +17,6 @@ class MainActivity : AppCompatActivity() {
             startActivity(Intent(this, LoginActivity::class.java))
             finish() // 스플래시 액티비티 종료
         }, 2000) // 2초 딜레이
+
     }
 }
