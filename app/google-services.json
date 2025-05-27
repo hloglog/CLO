@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "736694114045",
+    "project_id": "clo1-4c1ea",
+    "storage_bucket": "clo1-4c1ea.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:736694114045:android:a0f9e8dbafade3241cd094",
+        "android_client_info": {
+          "package_name": "com.example.clo"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAdmkAYsINEsGf0l8MIpyajvorK5UOa7oE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
