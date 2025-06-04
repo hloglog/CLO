@@ -1,11 +1,14 @@
 package com.example.clo
 
+import android.content.Intent
 import android.graphics.Paint
 import android.os.Bundle
 import android.widget.Button
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.bottomnavigation.BottomNavigationView
 
 class ClosetActivity : AppCompatActivity() {
     private lateinit var topButton: Button
@@ -25,8 +28,8 @@ class ClosetActivity : AppCompatActivity() {
         accessoriesButton = findViewById(R.id.button_accessories)
         clothesRecyclerView = findViewById(R.id.recycler_view_clothes)
 
-        // Set up RecyclerView with Grid Layout (4 columns)
-        clothesRecyclerView.layoutManager = GridLayoutManager(this, 4)
+        // Set up RecyclerView with Grid Layout (3 columns)
+        clothesRecyclerView.layoutManager = GridLayoutManager(this, 3)
 
         // Set click listeners for category buttons
         topButton.setOnClickListener {
@@ -51,6 +54,30 @@ class ClosetActivity : AppCompatActivity() {
             resetAllUnderlines()
             accessoriesButton.paintFlags = accessoriesButton.paintFlags or Paint.UNDERLINE_TEXT_FLAG
             // TODO: Load accessories items
+        }
+
+        // Set up bottom navigation
+        val bottomNavigationView = findViewById<BottomNavigationView>(R.id.bottom_navigation)
+        bottomNavigationView.selectedItemId = R.id.navigation_mypage
+
+        bottomNavigationView.setOnNavigationItemSelectedListener {
+            when (it.itemId) {
+                R.id.navigation_search -> {
+                    Toast.makeText(this, "검색 클릭", Toast.LENGTH_SHORT).show()
+                    true
+                }
+                R.id.navigation_home -> {
+                    startActivity(Intent(this, HomeActivity::class.java))
+                    finish()
+                    true
+                }
+                R.id.navigation_mypage -> {
+                    startActivity(Intent(this, MyPageActivity::class.java))
+                    finish()
+                    true
+                }
+                else -> false
+            }
         }
 
         // Set default selection to tops

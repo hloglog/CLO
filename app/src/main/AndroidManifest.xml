@@ -51,6 +51,10 @@
             android:name=".ClosetActivity"
             android:exported="false" />
 
+        <activity
+            android:name=".OutfitUploadActivity"
+            android:exported="false" />
+
     </application>
 
 </manifest>
