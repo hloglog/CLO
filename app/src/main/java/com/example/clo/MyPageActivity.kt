@@ -45,7 +45,12 @@ class MyPageActivity : AppCompatActivity() {
             startActivity(intent)
         }
 
-        // TODO: CLOSET 버튼 클릭 리스너 추가
+        // CLOSET 버튼 클릭 리스너
+        val buttonCloset = findViewById<Button>(R.id.button_closet)
+        buttonCloset.setOnClickListener {
+            val intent = Intent(this, ClosetActivity::class.java)
+            startActivity(intent)
+        }
 
         // TODO: TODAY 섹션 착장 목록 표시 (RecyclerView 등)
     }
