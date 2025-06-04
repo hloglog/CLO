@@ -1,5 +1,6 @@
 package com.example.clo
 
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
@@ -49,13 +50,22 @@ class LoginActivity : AppCompatActivity() {
                     btnLogin.text = "로그인"
 
                     if (task.isSuccessful) {
-                        // 로그인 성공 시 마지막 로그인 시간 업데이트
+                        // 로그인 성공 시
                         val user = auth.currentUser
                         user?.let { firebaseUser ->
                             val userId = firebaseUser.uid
+                            // 마지막 로그인 시간 업데이트
                             database.reference.child("users").child(userId)
                                 .child("lastLogin")
                                 .setValue(Date().time)
+
+                            // SharedPreferences에 로그인 상태 저장
+                            val sharedPref = getSharedPreferences("login_status", Context.MODE_PRIVATE)
+                            with (sharedPref.edit()) {
+                                putBoolean("is_logged_in", true)
+                                putString("user_id", userId) // 사용자 ID도 함께 저장 (필요에 따라)
+                                apply()
+                            }
                         }
                         Toast.makeText(this, "로그인 성공", Toast.LENGTH_SHORT).show()
                         startActivity(Intent(this, HomeActivity::class.java))
