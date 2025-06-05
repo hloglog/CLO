@@ -30,12 +30,12 @@ class ProfileSettingsActivity : AppCompatActivity() {
         editTextName = findViewById(R.id.edit_text_name)
         editTextId = findViewById(R.id.edit_text_id)
         buttonLogout = findViewById(R.id.button_logout)
-        buttonDone = findViewById(R.id.button_done)
+        buttonDone = findViewById(R.id.button_complete)
 
         // TODO: 현재 사용자 정보 (이름, 아이디)를 EditText에 로드
 
         // 이미지 수정 버튼 클릭 리스너
-        findViewById<Button>(R.id.button_edit_image).setOnClickListener {
+        findViewById<Button>(R.id.button_change_image).setOnClickListener {
             // TODO: 이미지 수정 로직 구현 (갤러리 열기 등)
             Toast.makeText(this, "이미지 수정 클릭", Toast.LENGTH_SHORT).show()
         }
