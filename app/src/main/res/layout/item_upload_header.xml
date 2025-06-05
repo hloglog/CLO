@@ -20,7 +20,7 @@
             android:id="@+id/text_upload_outfit"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="오늘의 착장 업로드"
+            android:text="오늘의 착장 업로드\n              ➜"
             android:textColor="@color/black"
             android:textSize="35sp"
             android:textStyle="bold"

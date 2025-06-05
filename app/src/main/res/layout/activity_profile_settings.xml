@@ -47,13 +47,18 @@
 
             <!-- 이미지 수정 버튼 -->
             <Button
-                android:id="@+id/button_edit_image"
+                android:id="@+id/button_change_image"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
                 android:text="이미지 수정"
-                android:textColor="@color/black"
-                android:backgroundTint="@android:color/white"
+                android:textColor="@android:color/white"
+                android:textSize="20sp"
+                android:background="@drawable/button_border_white_black_bg_less_round"
+                android:backgroundTint="@null"
+                android:stateListAnimator="@null"
+                app:backgroundTint="@null"
+                style="@null"
                 app:layout_constraintTop_toBottomOf="@+id/image_profile"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"/>
@@ -67,7 +72,7 @@
                 android:text="이름"
                 android:textColor="@android:color/white"
                 android:textSize="18sp"
-                app:layout_constraintTop_toBottomOf="@+id/button_edit_image"
+                app:layout_constraintTop_toBottomOf="@+id/button_change_image"
                 app:layout_constraintStart_toStartOf="parent"/>
 
             <EditText
@@ -116,22 +121,36 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="40dp"
-                android:backgroundTint="#D32F2F"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
                 android:text="로그아웃"
                 android:textColor="@android:color/white"
+                android:textSize="20sp"
+                android:background="@drawable/button_border_white_red_bg_less_round"
+                android:backgroundTint="@null"
+                android:stateListAnimator="@null"
+                app:backgroundTint="@null"
+                style="@null"
                 app:layout_constraintTop_toBottomOf="@+id/edit_text_id"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"/>
 
             <!-- 완료 버튼 -->
             <Button
-                android:id="@+id/button_done"
+                android:id="@+id/button_complete"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:backgroundTint="@android:color/white"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
                 android:text="완료"
-                android:textColor="@color/black"
+                android:textColor="@android:color/white"
+                android:textSize="20sp"
+                android:background="@drawable/button_border_white_black_bg_less_round"
+                android:backgroundTint="@null"
+                android:stateListAnimator="@null"
+                app:backgroundTint="@null"
+                style="@null"
                 app:layout_constraintTop_toBottomOf="@+id/button_logout"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"/>

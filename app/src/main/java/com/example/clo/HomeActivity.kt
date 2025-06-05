@@ -52,10 +52,6 @@ class HomeActivity : AppCompatActivity() {
             return
         }
 
-        // 기존 요소들은 숨김 처리 (주석 처리 해제)
-//        findViewById<TextView>(R.id.tvUserEmail)?.visibility = View.GONE
-//        findViewById<Button>(R.id.btnLogout)?.visibility = View.GONE
-
         outfitsRecyclerView = findViewById(R.id.recycler_view_outfits)
         outfitsRecyclerView.layoutManager = LinearLayoutManager(this)
 
@@ -113,55 +109,42 @@ class HomeActivity : AppCompatActivity() {
 
         // 하단 네비게이션 바 설정
         bottomNavigationView = findViewById(R.id.bottom_navigation)
-        bottomNavigationView.selectedItemId = R.id.navigation_home // 홈 아이템 선택 상태로 표시
+        bottomNavigationView.selectedItemId = R.id.navigation_home
 
         bottomNavigationView.setOnNavigationItemSelectedListener {
             when (it.itemId) {
                 R.id.navigation_search -> {
-                    // TODO: 검색 화면으로 이동
                     Toast.makeText(this, "홈에서 검색 클릭", Toast.LENGTH_SHORT).show()
                     true
                 }
                 R.id.navigation_home -> {
-                    // 현재 화면
                     true
                 }
                 R.id.navigation_mypage -> {
-                    // TODO: 마이페이지 화면으로 이동
                     val intent = Intent(this, MyPageActivity::class.java)
                     startActivity(intent)
-                    finish() // 현재 액티비티 종료
+                    finish()
                     true
                 }
                 else -> false
             }
         }
-
-        // "오늘의 착장 업로드" 카드뷰 클릭 리스너는 어댑터로 이동
-//        findViewById<androidx.cardview.widget.CardView>(R.id.card_upload_outfit).setOnClickListener {
-//            // TODO: 착장 업로드 화면으로 이동하는 코드 추가
-//            Toast.makeText(this, "착장 업로드 버튼 클릭", Toast.LENGTH_SHORT).show()
-//        }
     }
 
     override fun onStart() {
         super.onStart()
-        // 현재 로그인된 사용자가 없거나 SharedPreferences에 로그인 상태가 false이면 로그인 화면으로 이동
         if (auth.currentUser == null || !isUserLoggedIn()) {
             startActivity(Intent(this, LoginActivity::class.java))
             finish()
         }
     }
 
-    // SharedPreferences에서 로그인 상태 확인
     private fun isUserLoggedIn(): Boolean {
         val sharedPref = getSharedPreferences("login_status", Context.MODE_PRIVATE)
         return sharedPref.getBoolean("is_logged_in", false)
     }
 
-    // RecyclerView 어댑터
     private class OutfitAdapter(private val items: List<AdapterItem>) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
-
         private val VIEW_TYPE_HEADER = 0
         private val VIEW_TYPE_OUTFIT = 1
 
@@ -176,7 +159,12 @@ class HomeActivity : AppCompatActivity() {
             return when (viewType) {
                 VIEW_TYPE_HEADER -> {
                     val view = LayoutInflater.from(parent.context).inflate(R.layout.item_upload_header, parent, false)
-                    HeaderViewHolder(view)
+                    val holder = HeaderViewHolder(view)
+                    holder.itemView.findViewById<CardView>(R.id.card_upload_outfit).setOnClickListener {
+                        val context = holder.itemView.context
+                        context.startActivity(Intent(context, OutfitUploadActivity::class.java))
+                    }
+                    holder
                 }
                 VIEW_TYPE_OUTFIT -> {
                     val view = LayoutInflater.from(parent.context).inflate(R.layout.item_outfit, parent, false)
@@ -200,11 +188,7 @@ class HomeActivity : AppCompatActivity() {
 
         class HeaderViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
             fun bind() {
-                val cardUploadOutfit = itemView.findViewById<CardView>(R.id.card_upload_outfit)
-                cardUploadOutfit.setOnClickListener { v ->
-                    // TODO: 착장 업로드 화면으로 이동하는 코드 추가
-                    Toast.makeText(v.context, "착장 업로드 버튼 클릭 (어댑터)", Toast.LENGTH_SHORT).show()
-                }
+                // 클릭 리스너는 onCreateViewHolder에서 설정됨
             }
         }
 
@@ -217,15 +201,8 @@ class HomeActivity : AppCompatActivity() {
             private val iconLike: ImageView = itemView.findViewById(R.id.icon_like)
 
             fun bind(outfit: Outfit) {
-                // TODO: 이미지 로딩 라이브러리 (예: Glide)를 사용하여 이미지 로드
-                // Glide.with(itemView.context).load(outfit.profileImageUrl).into(imageProfile)
-                // Glide.with(itemView.context).load(outfit.codiImageUrl).into(imageCodi)
-                // Glide.with(itemView.context).load(outfit.outfitShotUrl).into(imageOutfitShot)
-
                 textUsername.text = outfit.username
                 textLikeCount.text = outfit.likeCount.toString()
-
-                // TODO: 좋아요 버튼 클릭 리스너 추가
             }
         }
     }
