@@ -3,6 +3,7 @@ package com.example.clo
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
@@ -10,21 +11,26 @@ import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 
 class ProfileSettingsActivity : AppCompatActivity() {
 
     private lateinit var auth: FirebaseAuth
+    private lateinit var db: FirebaseFirestore
     private lateinit var editTextName: EditText
     private lateinit var editTextId: EditText
     private lateinit var buttonLogout: Button
     private lateinit var buttonDone: Button
+    private val TAG = "ProfileSettings"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_profile_settings)
 
         auth = Firebase.auth
+        db = Firebase.firestore
 
         // 뷰 바인딩
         editTextName = findViewById(R.id.edit_text_name)
@@ -32,7 +38,8 @@ class ProfileSettingsActivity : AppCompatActivity() {
         buttonLogout = findViewById(R.id.button_logout)
         buttonDone = findViewById(R.id.button_complete)
 
-        // TODO: 현재 사용자 정보 (이름, 아이디)를 EditText에 로드
+        // 현재 사용자 정보 로드
+        loadUserProfile()
 
         // 이미지 수정 버튼 클릭 리스너
         findViewById<Button>(R.id.button_change_image).setOnClickListener {
@@ -49,7 +56,7 @@ class ProfileSettingsActivity : AppCompatActivity() {
             val sharedPref = getSharedPreferences("login_status", Context.MODE_PRIVATE)
             with (sharedPref.edit()) {
                 putBoolean("is_logged_in", false)
-                remove("user_id") // 저장된 사용자 ID도 삭제
+                remove("user_id")
                 apply()
             }
 
@@ -57,44 +64,112 @@ class ProfileSettingsActivity : AppCompatActivity() {
 
             // 로그인 화면으로 이동
             val intent = Intent(this, LoginActivity::class.java)
-            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK // 이전 액티비티 스택 모두 지우기
+            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
             startActivity(intent)
             finish()
         }
 
         // 완료 버튼 클릭 리스너
         buttonDone.setOnClickListener {
-            // TODO: 변경된 프로필 정보 저장 로직 구현 (이름, 아이디)
-            val newName = editTextName.text.toString()
-            val newId = editTextId.text.toString()
-            Toast.makeText(this, "완료 클릭: 이름 - $newName, 아이디 - $newId", Toast.LENGTH_SHORT).show()
-            finish() // 마이페이지로 돌아가기
+            try {
+                val newName = editTextName.text.toString().trim()
+                
+                if (newName.isEmpty()) {
+                    Toast.makeText(this, "이름을 입력해주세요.", Toast.LENGTH_SHORT).show()
+                    return@setOnClickListener
+                }
+
+                Log.d(TAG, "이름 업데이트 시작: $newName")
+
+                // 버튼 비활성화 및 로딩 상태 표시
+                buttonDone.isEnabled = false
+                buttonDone.text = "저장 중..."
+
+                // 현재 로그인된 사용자의 ID 가져오기
+                val userId = auth.currentUser?.uid
+                if (userId == null) {
+                    Log.e(TAG, "사용자 ID가 null입니다")
+                    Toast.makeText(this, "사용자 정보를 찾을 수 없습니다.", Toast.LENGTH_SHORT).show()
+                    buttonDone.isEnabled = true
+                    buttonDone.text = "완료"
+                    return@setOnClickListener
+                }
+
+                Log.d(TAG, "사용자 ID: $userId")
+
+                // Firestore에 사용자 정보 업데이트
+                db.collection("users").document(userId)
+                    .update("name", newName)
+                    .addOnSuccessListener {
+                        Log.d(TAG, "이름 업데이트 성공")
+                        Toast.makeText(this, "프로필이 업데이트되었습니다.", Toast.LENGTH_SHORT).show()
+                        buttonDone.isEnabled = true
+                        buttonDone.text = "완료"
+                        finish()
+                    }
+                    .addOnFailureListener { e ->
+                        Log.e(TAG, "이름 업데이트 실패", e)
+                        Toast.makeText(this, "프로필 업데이트 실패: ${e.message}", Toast.LENGTH_SHORT).show()
+                        buttonDone.isEnabled = true
+                        buttonDone.text = "완료"
+                    }
+            } catch (e: Exception) {
+                Log.e(TAG, "예외 발생", e)
+                Toast.makeText(this, "오류가 발생했습니다: ${e.message}", Toast.LENGTH_SHORT).show()
+                buttonDone.isEnabled = true
+                buttonDone.text = "완료"
+            }
         }
 
-        // 하단 네비게이션 바 설정 (마이페이지 아이템 선택 상태로 표시)
+        // 하단 네비게이션 바 설정
         val bottomNavigationView: BottomNavigationView = findViewById(R.id.bottom_navigation)
         bottomNavigationView.selectedItemId = R.id.navigation_mypage
 
         bottomNavigationView.setOnNavigationItemSelectedListener {
             when (it.itemId) {
                 R.id.navigation_search -> {
-                    // TODO: 검색 화면으로 이동
                     Toast.makeText(this, "설정에서 검색 클릭", Toast.LENGTH_SHORT).show()
                     true
                 }
                 R.id.navigation_home -> {
-                    // TODO: 홈 화면으로 이동
                     val intent = Intent(this, HomeActivity::class.java)
                     startActivity(intent)
-                    finish() // 현재 액티비티 종료
+                    finish()
                     true
                 }
-                R.id.navigation_mypage -> {
-                    // TODO: 마이페이지 화면으로 이동 (현재 화면에서 완료 버튼으로 돌아가므로 여기서는 아무것도 하지 않음)
-                    true
-                }
+                R.id.navigation_mypage -> true
                 else -> false
             }
         }
+    }
+
+    private fun loadUserProfile() {
+        val userId = auth.currentUser?.uid ?: return
+        
+        // 사용자 ID는 이메일에서 추출
+        val userEmail = auth.currentUser?.email ?: return
+        val userIdFromEmail = userEmail.split("@")[0]
+        editTextId.setText(userIdFromEmail)
+        editTextId.isEnabled = false // ID는 수정 불가능
+
+        // Firestore에서 사용자 정보 로드
+        db.collection("users").document(userId)
+            .get()
+            .addOnSuccessListener { document ->
+                if (document != null && document.exists()) {
+                    val name = document.getString("name")
+                    editTextName.setText(name ?: userIdFromEmail) // 이름이 없으면 이메일 ID 사용
+                } else {
+                    Log.d(TAG, "사용자 문서가 존재하지 않음")
+                    editTextName.setText(userIdFromEmail)
+                }
+            }
+            .addOnFailureListener { e ->
+                Log.e(TAG, "프로필 정보 로드 실패", e)
+                Toast.makeText(this, 
+                    "프로필 정보 로드 실패: ${e.message}", 
+                    Toast.LENGTH_SHORT).show()
+                editTextName.setText(userIdFromEmail)
+            }
     }
 } 
