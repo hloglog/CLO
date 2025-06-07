@@ -96,6 +96,12 @@ class MyPageActivity : AppCompatActivity() {
         }
     }
 
+    override fun onResume() {
+        super.onResume()
+        // 화면이 다시 포커스를 받을 때마다 프로필 정보 새로고침
+        loadUserProfile()
+    }
+
     private fun isUserLoggedIn(): Boolean {
         val sharedPref = getSharedPreferences("login_status", Context.MODE_PRIVATE)
         return sharedPref.getBoolean("is_logged_in", false)
