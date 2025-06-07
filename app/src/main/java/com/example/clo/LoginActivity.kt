@@ -3,6 +3,7 @@ package com.example.clo
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
@@ -10,13 +11,15 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
-import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import java.util.*
 
 class LoginActivity : AppCompatActivity() {
     private lateinit var auth: FirebaseAuth
-    private lateinit var database: FirebaseDatabase
+    private lateinit var db: FirebaseFirestore
+    private val TAG = "LoginActivity"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -25,7 +28,7 @@ class LoginActivity : AppCompatActivity() {
         auth = Firebase.auth.apply {
             firebaseAuthSettings.setAppVerificationDisabledForTesting(true)
         }
-        database = FirebaseDatabase.getInstance()
+        db = Firebase.firestore
 
         val etEmail = findViewById<EditText>(R.id.etEmail)
         val etPassword = findViewById<EditText>(R.id.etPassword)
@@ -54,25 +57,49 @@ class LoginActivity : AppCompatActivity() {
                         val user = auth.currentUser
                         user?.let { firebaseUser ->
                             val userId = firebaseUser.uid
-                            // 마지막 로그인 시간 업데이트
-                            database.reference.child("users").child(userId)
-                                .child("lastLogin")
-                                .setValue(Date().time)
-
-                            // SharedPreferences에 로그인 상태 저장
-                            val sharedPref = getSharedPreferences("login_status", Context.MODE_PRIVATE)
-                            with (sharedPref.edit()) {
-                                putBoolean("is_logged_in", true)
-                                putString("user_id", userId) // 사용자 ID도 함께 저장 (필요에 따라)
-                                apply()
-                            }
+                            
+                            // Firestore에 마지막 로그인 시간 업데이트
+                            db.collection("users").document(userId)
+                                .update("lastLogin", Date())
+                                .addOnSuccessListener {
+                                    Log.d(TAG, "마지막 로그인 시간 업데이트 성공")
+                                    
+                                    // SharedPreferences에 로그인 상태 저장
+                                    val sharedPref = getSharedPreferences("login_status", Context.MODE_PRIVATE)
+                                    with (sharedPref.edit()) {
+                                        putBoolean("is_logged_in", true)
+                                        putString("user_id", userId)
+                                        apply()
+                                    }
+                                    
+                                    Toast.makeText(this, "로그인 성공", Toast.LENGTH_SHORT).show()
+                                    startActivity(Intent(this, HomeActivity::class.java))
+                                    finish()
+                                }
+                                .addOnFailureListener { e ->
+                                    Log.e(TAG, "마지막 로그인 시간 업데이트 실패", e)
+                                    // 로그인 시간 업데이트 실패해도 로그인은 성공으로 처리
+                                    val sharedPref = getSharedPreferences("login_status", Context.MODE_PRIVATE)
+                                    with (sharedPref.edit()) {
+                                        putBoolean("is_logged_in", true)
+                                        putString("user_id", userId)
+                                        apply()
+                                    }
+                                    
+                                    Toast.makeText(this, "로그인 성공", Toast.LENGTH_SHORT).show()
+                                    startActivity(Intent(this, HomeActivity::class.java))
+                                    finish()
+                                }
                         }
-                        Toast.makeText(this, "로그인 성공", Toast.LENGTH_SHORT).show()
-                        startActivity(Intent(this, HomeActivity::class.java))
-                        finish()
                     } else {
-                        Toast.makeText(this, "로그인에 실패했습니다: ${task.exception?.message}", 
-                            Toast.LENGTH_SHORT).show()
+                        val errorMessage = when {
+                            task.exception?.message?.contains("no user record") == true ->
+                                "등록되지 않은 이메일입니다"
+                            task.exception?.message?.contains("password is invalid") == true ->
+                                "잘못된 비밀번호입니다"
+                            else -> "로그인 실패: ${task.exception?.message}"
+                        }
+                        Toast.makeText(this, errorMessage, Toast.LENGTH_SHORT).show()
                     }
                 }
         }
