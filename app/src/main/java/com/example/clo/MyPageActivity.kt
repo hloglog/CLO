@@ -52,8 +52,9 @@ class MyPageActivity : AppCompatActivity() {
         bottomNavigationView.setOnNavigationItemSelectedListener {
             when (it.itemId) {
                 R.id.navigation_search -> {
-                    // TODO: 검색 화면으로 이동
-                    Toast.makeText(this, "마이페이지에서 검색 클릭", Toast.LENGTH_SHORT).show()
+                    val intent = Intent(this, SearchActivity::class.java)
+                    startActivity(intent)
+                    finish()
                     true
                 }
                 R.id.navigation_home -> {

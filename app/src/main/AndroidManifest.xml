@@ -55,6 +55,10 @@
             android:name=".OutfitUploadActivity"
             android:exported="false" />
 
+        <activity
+            android:name=".SearchActivity"
+            android:exported="false" />
+
     </application>
 
 </manifest>

@@ -3,6 +3,7 @@ package com.example.clo
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -17,33 +18,38 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 
 sealed class AdapterItem {
     object Header : AdapterItem()
-    data class OutfitItem(val outfit: Outfit) : AdapterItem()
+    data class UserItem(val user: User) : AdapterItem()
 }
 
-data class Outfit(
+data class User(
     val id: String,
     val username: String,
+    val email: String,
     val profileImageUrl: String? = null,
-    val codiImageUrl: String? = null,
-    val outfitShotUrl: String? = null,
-    val likeCount: Int = 0
+    val followers: Int = 0,
+    val following: Int = 0
 )
 
 class HomeActivity : AppCompatActivity() {
     private lateinit var auth: FirebaseAuth
-    private lateinit var outfitsRecyclerView: RecyclerView
-    private lateinit var outfitAdapter: OutfitAdapter
+    private lateinit var db: FirebaseFirestore
+    private lateinit var usersRecyclerView: RecyclerView
+    private lateinit var userAdapter: UserAdapter
     private lateinit var bottomNavigationView: BottomNavigationView
+    private val TAG = "HomeActivity"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_home)
 
         auth = Firebase.auth
+        db = Firebase.firestore
 
         // 현재 로그인된 사용자가 없거나 SharedPreferences에 로그인 상태가 false이면 로그인 화면으로 이동
         if (auth.currentUser == null || !isUserLoggedIn()) {
@@ -52,60 +58,18 @@ class HomeActivity : AppCompatActivity() {
             return
         }
 
-        outfitsRecyclerView = findViewById(R.id.recycler_view_outfits)
-        outfitsRecyclerView.layoutManager = LinearLayoutManager(this)
+        usersRecyclerView = findViewById(R.id.recycler_view_outfits)
+        usersRecyclerView.layoutManager = LinearLayoutManager(this)
 
-        // 더미 데이터 생성
-        val dummyOutfits = listOf(
-            Outfit(
-                id = "1",
-                username = "3han",
-                profileImageUrl = "", // TODO: 실제 이미지 URL로 변경
-                codiImageUrl = "", // TODO: 실제 이미지 URL로 변경
-                outfitShotUrl = "", // TODO: 실제 이미지 URL로 변경
-                likeCount = 123
-            ),
-            Outfit(
-                id = "2",
-                username = "User2",
-                profileImageUrl = "", // TODO: 실제 이미지 URL로 변경
-                codiImageUrl = "", // TODO: 실제 이미지 URL로 변경
-                outfitShotUrl = "", // TODO: 실제 이미지 URL로 변경
-                likeCount = 55
-            ),
-            Outfit(
-                id = "3",
-                username = "Fashionista",
-                profileImageUrl = "", // TODO: 실제 이미지 URL로 변경
-                codiImageUrl = "", // TODO: 실제 이미지 URL로 변경
-                outfitShotUrl = "", // TODO: 실제 이미지 URL로 변경
-                likeCount = 201
-            ),
-            Outfit(
-                id = "4",
-                username = "StyleGuy",
-                profileImageUrl = "", // TODO: 실제 이미지 URL로 변경
-                codiImageUrl = "", // TODO: 실제 이미지 URL로 변경
-                outfitShotUrl = "", // TODO: 실제 이미지 URL로 변경
-                likeCount = 88
-            ),
-             Outfit(
-                id = "5",
-                username = "OutfitQueen",
-                profileImageUrl = "", // TODO: 실제 이미지 URL로 변경
-                codiImageUrl = "", // TODO: 실제 이미지 URL로 변경
-                outfitShotUrl = "", // TODO: 실제 이미지 URL로 변경
-                likeCount = 340
-            )
-        )
-
-        // 헤더와 더미 착장 데이터를 포함하는 리스트 생성
+        // 헤더와 사용자 데이터를 포함하는 리스트 생성
         val adapterItems = mutableListOf<AdapterItem>()
         adapterItems.add(AdapterItem.Header)
-        dummyOutfits.map { AdapterItem.OutfitItem(it) }.let { adapterItems.addAll(it) }
 
-        outfitAdapter = OutfitAdapter(adapterItems)
-        outfitsRecyclerView.adapter = outfitAdapter
+        userAdapter = UserAdapter(adapterItems)
+        usersRecyclerView.adapter = userAdapter
+
+        // Firebase에서 사용자 데이터 로드
+        loadUsersFromFirebase()
 
         // 하단 네비게이션 바 설정
         bottomNavigationView = findViewById(R.id.bottom_navigation)
@@ -114,7 +78,9 @@ class HomeActivity : AppCompatActivity() {
         bottomNavigationView.setOnNavigationItemSelectedListener {
             when (it.itemId) {
                 R.id.navigation_search -> {
-                    Toast.makeText(this, "홈에서 검색 클릭", Toast.LENGTH_SHORT).show()
+                    val intent = Intent(this, SearchActivity::class.java)
+                    startActivity(intent)
+                    finish()
                     true
                 }
                 R.id.navigation_home -> {
@@ -131,6 +97,33 @@ class HomeActivity : AppCompatActivity() {
         }
     }
 
+    private fun loadUsersFromFirebase() {
+        db.collection("users")
+            .get()
+            .addOnSuccessListener { documents ->
+                val userItems = mutableListOf<AdapterItem>()
+                userItems.add(AdapterItem.Header) // 헤더는 항상 첫 번째
+                
+                for (document in documents) {
+                    val user = User(
+                        id = document.id,
+                        username = document.getString("name") ?: "사용자",
+                        email = document.getString("email") ?: "",
+                        profileImageUrl = document.getString("profileImageUrl"),
+                        followers = document.getLong("followers")?.toInt() ?: 0,
+                        following = document.getLong("following")?.toInt() ?: 0
+                    )
+                    userItems.add(AdapterItem.UserItem(user))
+                }
+                
+                userAdapter.updateItems(userItems)
+            }
+            .addOnFailureListener { e ->
+                Log.e(TAG, "사용자 데이터 로드 실패", e)
+                Toast.makeText(this, "사용자 데이터 로드 실패", Toast.LENGTH_SHORT).show()
+            }
+    }
+
     override fun onStart() {
         super.onStart()
         if (auth.currentUser == null || !isUserLoggedIn()) {
@@ -144,14 +137,19 @@ class HomeActivity : AppCompatActivity() {
         return sharedPref.getBoolean("is_logged_in", false)
     }
 
-    private class OutfitAdapter(private val items: List<AdapterItem>) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+    private class UserAdapter(private var items: List<AdapterItem>) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
         private val VIEW_TYPE_HEADER = 0
-        private val VIEW_TYPE_OUTFIT = 1
+        private val VIEW_TYPE_USER = 1
+
+        fun updateItems(newItems: List<AdapterItem>) {
+            items = newItems
+            notifyDataSetChanged()
+        }
 
         override fun getItemViewType(position: Int): Int {
             return when (items[position]) {
                 is AdapterItem.Header -> VIEW_TYPE_HEADER
-                is AdapterItem.OutfitItem -> VIEW_TYPE_OUTFIT
+                is AdapterItem.UserItem -> VIEW_TYPE_USER
             }
         }
 
@@ -166,9 +164,9 @@ class HomeActivity : AppCompatActivity() {
                     }
                     holder
                 }
-                VIEW_TYPE_OUTFIT -> {
+                VIEW_TYPE_USER -> {
                     val view = LayoutInflater.from(parent.context).inflate(R.layout.item_outfit, parent, false)
-                    OutfitViewHolder(view)
+                    UserViewHolder(view)
                 }
                 else -> throw IllegalArgumentException("Invalid view type")
             }
@@ -177,9 +175,9 @@ class HomeActivity : AppCompatActivity() {
         override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
             when (holder) {
                 is HeaderViewHolder -> holder.bind()
-                is OutfitViewHolder -> {
-                    val outfitItem = items[position] as AdapterItem.OutfitItem
-                    holder.bind(outfitItem.outfit)
+                is UserViewHolder -> {
+                    val userItem = items[position] as AdapterItem.UserItem
+                    holder.bind(userItem.user)
                 }
             }
         }
@@ -192,7 +190,7 @@ class HomeActivity : AppCompatActivity() {
             }
         }
 
-        class OutfitViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        class UserViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
             private val imageProfile: ImageView = itemView.findViewById(R.id.image_profile)
             private val textUsername: TextView = itemView.findViewById(R.id.text_username)
             private val imageCodi: ImageView = itemView.findViewById(R.id.image_codi)
@@ -200,9 +198,12 @@ class HomeActivity : AppCompatActivity() {
             private val textLikeCount: TextView = itemView.findViewById(R.id.text_like_count)
             private val iconLike: ImageView = itemView.findViewById(R.id.icon_like)
 
-            fun bind(outfit: Outfit) {
-                textUsername.text = outfit.username
-                textLikeCount.text = outfit.likeCount.toString()
+            fun bind(user: User) {
+                textUsername.text = user.username
+                textLikeCount.text = "팔로워 ${user.followers}명"
+                
+                // TODO: 프로필 이미지 로드 (Glide 등 사용)
+                // TODO: 코디 이미지와 아웃핏샷 이미지 로드 (실제 아웃핏 데이터가 있을 때)
             }
         }
     }
