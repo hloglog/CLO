@@ -102,31 +102,21 @@ class ClosetActivity : AppCompatActivity() {
         val bottomNavigationView = findViewById<BottomNavigationView>(R.id.bottomNavigationView)
         bottomNavigationView.selectedItemId = R.id.menu_mypage
 
-        bottomNavigationView.setOnItemSelectedListener { item ->
-            if (!isActivityActive) return@setOnItemSelectedListener false
-            
-            when (item.itemId) {
-                R.id.menu_home -> {
-                    try {
-                        startActivity(Intent(this, HomeActivity::class.java))
-                        finish()
-                        true
-                    } catch (e: Exception) {
-                        Log.e(TAG, "Error navigating to Home", e)
-                        Toast.makeText(this, "화면 전환 중 오류가 발생했습니다.", Toast.LENGTH_SHORT).show()
-                        false
-                    }
+        bottomNavigationView.setOnNavigationItemSelectedListener {
+            when (it.itemId) {
+                R.id.navigation_search -> {
+                    Toast.makeText(this, "검색 클릭", Toast.LENGTH_SHORT).show()
+                    true
                 }
-                R.id.menu_mypage -> {
-                    try {
-                        startActivity(Intent(this, MyPageActivity::class.java))
-                        finish()
-                        true
-                    } catch (e: Exception) {
-                        Log.e(TAG, "Error navigating to MyPage", e)
-                        Toast.makeText(this, "화면 전환 중 오류가 발생했습니다.", Toast.LENGTH_SHORT).show()
-                        false
-                    }
+                R.id.navigation_home -> {
+                    startActivity(Intent(this, MainActivity::class.java))
+                    finish()
+                    true
+                }
+                R.id.navigation_mypage -> {
+                    startActivity(Intent(this, MyPageFragment::class.java))
+                    finish()
+                    true
                 }
                 else -> false
             }

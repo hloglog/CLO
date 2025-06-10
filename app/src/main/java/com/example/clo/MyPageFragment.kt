@@ -4,90 +4,74 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
-import androidx.appcompat.app.AppCompatActivity
-import androidx.cardview.widget.CardView
-import com.google.android.material.bottomnavigation.BottomNavigationView
+import androidx.fragment.app.Fragment
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 
-class MyPageActivity : AppCompatActivity() {
+class MyPageFragment : Fragment() {
     private lateinit var auth: FirebaseAuth
     private lateinit var db: FirebaseFirestore
     private lateinit var textUsername: TextView
     private lateinit var textFollowers: TextView
     private lateinit var imageProfile: ImageView
-    private val TAG = "MyPageActivity"
+    private val TAG = "MyPageFragment"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_mypage)
-
         auth = Firebase.auth
         db = Firebase.firestore
+    }
+
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
+        // Inflate the layout for this fragment
+        return inflater.inflate(R.layout.fragment_my_page, container, false)
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
 
         // 현재 로그인된 사용자가 없거나 SharedPreferences에 로그인 상태가 false이면 로그인 화면으로 이동
+        // (액티비티 단에서 처리되거나, 여기서는 프래그먼트 전환 로직에 따라 변경될 수 있음)
+        // 현재는 MyPageActivity의 로직을 그대로 옮겨옴
         if (auth.currentUser == null || !isUserLoggedIn()) {
-            startActivity(Intent(this, LoginActivity::class.java))
-            finish()
+            startActivity(Intent(activity, LoginActivity::class.java))
+            activity?.finish()
             return
         }
 
         // 뷰 바인딩
-        textUsername = findViewById(R.id.text_username)
-        textFollowers = findViewById(R.id.text_followers)
-        imageProfile = findViewById(R.id.image_profile)
+        textUsername = view.findViewById(R.id.text_username)
+        textFollowers = view.findViewById(R.id.text_followers)
+        imageProfile = view.findViewById(R.id.image_profile)
 
         // 현재 로그인된 사용자 정보 표시
         loadUserProfile()
 
-        val bottomNavigationView: BottomNavigationView = findViewById(R.id.bottomNavigationView)
-        bottomNavigationView.selectedItemId = R.id.menu_mypage // 마이페이지 아이템 선택 상태로 표시
-
-        bottomNavigationView.setOnItemSelectedListener { item ->
-            when (item.itemId) {
-                R.id.menu_search -> {
-                    // TODO: 검색 화면으로 이동
-                    Toast.makeText(this, "마이페이지에서 검색 클릭", Toast.LENGTH_SHORT).show()
-                    true
-                }
-                R.id.menu_home -> {
-                    try {
-                        val intent = Intent(this, HomeActivity::class.java)
-                        startActivity(intent)
-                        finish()
-                        true
-                    } catch (e: Exception) {
-                        Log.e(TAG, "홈 화면으로 이동 중 오류 발생", e)
-                        Toast.makeText(this, "화면 전환 중 오류가 발생했습니다.", Toast.LENGTH_SHORT).show()
-                        false
-                    }
-                }
-                R.id.menu_mypage -> {
-                    // 현재 화면
-                    true
-                }
-                else -> false
-            }
-        }
-
         // 프로필 설정 버튼 클릭 리스너
-        val buttonProfileSettings = findViewById<Button>(R.id.button_profile_settings)
+        val buttonProfileSettings = view.findViewById<Button>(R.id.button_profile_settings)
         buttonProfileSettings.setOnClickListener {
-            val intent = Intent(this, ProfileSettingsActivity::class.java)
+            val intent = Intent(activity, ProfileSettingsActivity::class.java)
             startActivity(intent)
         }
 
         // CLOSET 버튼 클릭 리스너
-        val buttonCloset = findViewById<Button>(R.id.button_closet)
+        val buttonCloset = view.findViewById<Button>(R.id.button_closet)
         buttonCloset.setOnClickListener {
-            val intent = Intent(this, ClosetActivity::class.java)
+            val intent = Intent(activity, ClosetActivity::class.java)
             startActivity(intent)
         }
 
@@ -98,14 +82,6 @@ class MyPageActivity : AppCompatActivity() {
         }
     }
 
-    override fun onStart() {
-        super.onStart()
-        if (auth.currentUser == null || !isUserLoggedIn()) {
-            startActivity(Intent(this, LoginActivity::class.java))
-            finish()
-        }
-    }
-
     override fun onResume() {
         super.onResume()
         // 화면이 다시 포커스를 받을 때마다 프로필 정보 새로고침
@@ -113,8 +89,8 @@ class MyPageActivity : AppCompatActivity() {
     }
 
     private fun isUserLoggedIn(): Boolean {
-        val sharedPref = getSharedPreferences("login_status", Context.MODE_PRIVATE)
-        return sharedPref.getBoolean("is_logged_in", false)
+        val sharedPref = activity?.getSharedPreferences("login_status", Context.MODE_PRIVATE)
+        return sharedPref?.getBoolean("is_logged_in", false) ?: false
     }
 
     private fun loadUserProfile() {
@@ -126,7 +102,7 @@ class MyPageActivity : AppCompatActivity() {
             .addOnSuccessListener { document ->
                 if (document != null && document.exists()) {
                     val name = document.getString("name")
-                    val followers = document.getLong("followers") ?: 0
+                    val followers = (document.get("followers") as? List<String>)?.size ?: 0
                     
                     textUsername.text = name ?: auth.currentUser?.email?.split("@")?.get(0) ?: "사용자"
                     textFollowers.text = "팔로워 ${followers}명"
@@ -140,7 +116,7 @@ class MyPageActivity : AppCompatActivity() {
             }
             .addOnFailureListener { e ->
                 Log.e(TAG, "프로필 정보 로드 실패", e)
-                Toast.makeText(this, 
+                Toast.makeText(context, 
                     "프로필 정보 로드 실패: ${e.message}", 
                     Toast.LENGTH_SHORT).show()
                 textUsername.text = auth.currentUser?.email?.split("@")?.get(0) ?: "사용자"

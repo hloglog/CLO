@@ -100,7 +100,7 @@ class SignUpActivity : AppCompatActivity() {
                                 "name" to username,
                                 "createdAt" to Date(),
                                 "profileImageUrl" to null,
-                                "followers" to 0,
+                                "followers" to emptyList<String>(),
                                 "following" to 0
                             )
                             
@@ -151,7 +151,7 @@ class SignUpActivity : AppCompatActivity() {
                                                 
                                                 // 홈 화면으로 이동
                                                 val intent = Intent(this@SignUpActivity, 
-                                                    HomeActivity::class.java).apply {
+                                                    MainActivity::class.java).apply {
                                                     flags = Intent.FLAG_ACTIVITY_NEW_TASK or 
                                                            Intent.FLAG_ACTIVITY_CLEAR_TASK
                                                 }

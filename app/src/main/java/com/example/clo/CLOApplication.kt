@@ -14,16 +14,24 @@ class CLOApplication : Application() {
         super.onCreate()
         
         try {
-            // Firebase 초기화
-            FirebaseApp.initializeApp(this)
+            // Firebase가 이미 초기화되었는지 확인
+            if (FirebaseApp.getApps(this).isEmpty()) {
+                // Firebase 초기화
+                FirebaseApp.initializeApp(this)
+                Log.d(TAG, "Firebase 초기화 성공")
+            } else {
+                Log.d(TAG, "Firebase가 이미 초기화되어 있음")
+            }
             
-            // Firestore 초기화
-            val db = Firebase.firestore
-            db.firestoreSettings = com.google.firebase.firestore.FirebaseFirestoreSettings.Builder()
-                .setPersistenceEnabled(true)
-                .build()
+            // Firestore 초기화 (try-catch로 감싸서 오류 방지)
+            try {
+                val db = Firebase.firestore
+                // setPersistenceEnabled는 deprecated이므로 제거
+                Log.d(TAG, "Firestore 초기화 완료")
+            } catch (e: Exception) {
+                Log.e(TAG, "Firestore 초기화 실패", e)
+            }
             
-            Log.d(TAG, "Firebase 초기화 성공")
         } catch (e: Exception) {
             Log.e(TAG, "Firebase 초기화 실패", e)
         }

@@ -124,8 +124,8 @@ class ProfileSettingsActivity : AppCompatActivity() {
                     Toast.makeText(this, "설정에서 검색 클릭", Toast.LENGTH_SHORT).show()
                     true
                 }
-                R.id.menu_home -> {
-                    val intent = Intent(this, HomeActivity::class.java)
+                R.id.navigation_home -> {
+                    val intent = Intent(this, MainActivity::class.java)
                     startActivity(intent)
                     finish()
                     true

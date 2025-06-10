@@ -2,6 +2,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <!-- 인터넷 권한 -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
     <!-- 카메라 권한 -->
     <uses-permission android:name="android.permission.CAMERA" />
     <!-- 저장소 권한 -->
@@ -30,8 +34,16 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.CLO"
+        android:usesCleartextTraffic="true"
         tools:targetApi="31">
         
+<<<<<<< HEAD
+        <!-- Google Play Services 메타데이터 -->
+        <meta-data
+            android:name="com.google.android.gms.version"
+            android:value="@integer/google_play_services_version" />
+        
+=======
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"
@@ -42,19 +54,20 @@
                 android:resource="@xml/file_paths" />
         </provider>
 
+>>>>>>> main
         <activity
             android:name=".SplashActivity"
-            android:exported="true"
-            android:theme="@style/Theme.AppCompat.NoActionBar">
+            android:exported="false" />
+
+        <activity
+            android:name=".MainActivity"
+            android:exported="true" 
+            android:theme="@style/Theme.CLO">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
-        <activity
-            android:name=".MainActivity"
-            android:exported="false" />
             
         <activity
             android:name=".LoginActivity"
@@ -63,14 +76,7 @@
         <activity
             android:name=".SignUpActivity"
             android:exported="false" />
-        <activity
-            android:name=".HomeActivity"
-            android:exported="false" />
-
-        <activity
-            android:name=".MyPageActivity"
-            android:exported="false" />
-
+        
         <activity
             android:name=".ProfileSettingsActivity"
             android:exported="false" />
@@ -81,6 +87,11 @@
 
         <activity
             android:name=".OutfitUploadActivity"
+            android:exported="false" />
+
+        <!-- FriendProfileActivity 등록 -->
+        <activity
+            android:name=".FriendProfileActivity"
             android:exported="false" />
 
     </application>

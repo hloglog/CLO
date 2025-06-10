@@ -20,13 +20,13 @@ class OutfitUploadActivity : AppCompatActivity() {
                     Toast.makeText(this, "검색 클릭", Toast.LENGTH_SHORT).show()
                     true
                 }
-                R.id.menu_home -> {
-                    startActivity(Intent(this, HomeActivity::class.java))
+                R.id.navigation_home -> {
+                    startActivity(Intent(this, MainActivity::class.java))
                     finish()
                     true
                 }
-                R.id.menu_mypage -> {
-                    startActivity(Intent(this, MyPageActivity::class.java))
+                R.id.navigation_mypage -> {
+                    startActivity(Intent(this, MyPageFragment::class.java))
                     finish()
                     true
                 }
