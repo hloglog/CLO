@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
-        android:id="@+id/navigation_search"
+        android:id="@+id/menu_search"
         android:icon="@drawable/ic_search"
         android:title="검색" />
 
     <item
-        android:id="@+id/navigation_home"
+        android:id="@+id/menu_home"
         android:icon="@drawable/ic_home"
         android:title="홈" />
 
     <item
-        android:id="@+id/navigation_profile"
+        android:id="@+id/menu_mypage"
         android:icon="@drawable/ic_my_page"
         android:title="프로필" />
 </menu> 

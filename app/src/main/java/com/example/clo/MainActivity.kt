@@ -25,9 +25,9 @@ class MainActivity : AppCompatActivity() {
         val fragmentToShow = intent.getStringExtra("fragment")
         if (fragmentToShow != null) {
             when (fragmentToShow) {
-                "home" -> bottomNavigationView.selectedItemId = R.id.navigation_home
-                "search" -> bottomNavigationView.selectedItemId = R.id.navigation_search
-                "profile" -> bottomNavigationView.selectedItemId = R.id.navigation_profile
+                "home" -> bottomNavigationView.selectedItemId = R.id.menu_home
+                "search" -> bottomNavigationView.selectedItemId = R.id.menu_search
+                "profile" -> bottomNavigationView.selectedItemId = R.id.menu_mypage
             }
         }
 

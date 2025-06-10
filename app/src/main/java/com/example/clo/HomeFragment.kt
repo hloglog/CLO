@@ -19,21 +19,12 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import androidx.cardview.widget.CardView
+import com.example.clo.AdapterItem
+import com.example.clo.User
 
 // 기존 AdapterItem, User 데이터 클래스는 그대로 사용
-sealed class AdapterItem {
-    object Header : AdapterItem()
-    data class UserItem(val user: User) : AdapterItem()
-}
-
-data class User(
-    val id: String,
-    val username: String,
-    val email: String,
-    val profileImageUrl: String? = null,
-    val followers: Int = 0,
-    val following: Int = 0
-)
+// sealed class AdapterItem { ... }
+// data class User { ... }
 
 class HomeFragment : Fragment() {
     private lateinit var auth: FirebaseAuth
@@ -137,6 +128,7 @@ class HomeFragment : Fragment() {
             return when (items[position]) {
                 is AdapterItem.Header -> VIEW_TYPE_HEADER
                 is AdapterItem.UserItem -> VIEW_TYPE_USER
+                else -> VIEW_TYPE_USER // OutfitItem 등 예외는 User로 처리
             }
         }
 

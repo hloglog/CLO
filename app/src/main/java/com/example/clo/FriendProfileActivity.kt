@@ -174,24 +174,24 @@ class FriendProfileActivity : AppCompatActivity() {
     }
 
     private fun setupBottomNavigationView() {
-        bottomNavigationView.selectedItemId = R.id.navigation_profile // Highlight profile icon
+        bottomNavigationView.selectedItemId = R.id.menu_mypage // Highlight profile icon
         bottomNavigationView.setOnItemSelectedListener {
             when (it.itemId) {
-                R.id.navigation_search -> {
+                R.id.menu_search -> {
                     val intent = Intent(this, MainActivity::class.java)
                     intent.putExtra("fragment", "search")
                     startActivity(intent)
                     finish()
                     true
                 }
-                R.id.navigation_home -> {
+                R.id.menu_home -> {
                     val intent = Intent(this, MainActivity::class.java)
                     intent.putExtra("fragment", "home")
                     startActivity(intent)
                     finish()
                     true
                 }
-                R.id.navigation_profile -> {
+                R.id.menu_mypage -> {
                     val intent = Intent(this, MainActivity::class.java)
                     intent.putExtra("fragment", "profile")
                     startActivity(intent)

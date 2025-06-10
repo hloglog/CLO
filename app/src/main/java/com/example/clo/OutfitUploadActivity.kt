@@ -17,16 +17,23 @@ class OutfitUploadActivity : AppCompatActivity() {
         bottomNavigationView.setOnItemSelectedListener {
             when (it.itemId) {
                 R.id.menu_search -> {
-                    Toast.makeText(this, "검색 클릭", Toast.LENGTH_SHORT).show()
-                    true
-                }
-                R.id.navigation_home -> {
-                    startActivity(Intent(this, MainActivity::class.java))
+                    val intent = Intent(this, MainActivity::class.java)
+                    intent.putExtra("fragment", "search")
+                    startActivity(intent)
                     finish()
                     true
                 }
-                R.id.navigation_mypage -> {
-                    startActivity(Intent(this, MyPageFragment::class.java))
+                R.id.menu_home -> {
+                    val intent = Intent(this, MainActivity::class.java)
+                    intent.putExtra("fragment", "home")
+                    startActivity(intent)
+                    finish()
+                    true
+                }
+                R.id.menu_mypage -> {
+                    val intent = Intent(this, MainActivity::class.java)
+                    intent.putExtra("fragment", "profile")
+                    startActivity(intent)
                     finish()
                     true
                 }

@@ -104,17 +104,24 @@ class ClosetActivity : AppCompatActivity() {
 
         bottomNavigationView.setOnNavigationItemSelectedListener {
             when (it.itemId) {
-                R.id.navigation_search -> {
-                    Toast.makeText(this, "검색 클릭", Toast.LENGTH_SHORT).show()
-                    true
-                }
-                R.id.navigation_home -> {
-                    startActivity(Intent(this, MainActivity::class.java))
+                R.id.menu_search -> {
+                    val intent = Intent(this, MainActivity::class.java)
+                    intent.putExtra("fragment", "search")
+                    startActivity(intent)
                     finish()
                     true
                 }
-                R.id.navigation_mypage -> {
-                    startActivity(Intent(this, MyPageFragment::class.java))
+                R.id.menu_home -> {
+                    val intent = Intent(this, MainActivity::class.java)
+                    intent.putExtra("fragment", "home")
+                    startActivity(intent)
+                    finish()
+                    true
+                }
+                R.id.menu_mypage -> {
+                    val intent = Intent(this, MainActivity::class.java)
+                    intent.putExtra("fragment", "profile")
+                    startActivity(intent)
                     finish()
                     true
                 }
