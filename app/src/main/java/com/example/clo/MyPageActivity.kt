@@ -9,6 +9,7 @@ import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.cardview.widget.CardView
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
@@ -46,24 +47,29 @@ class MyPageActivity : AppCompatActivity() {
         // 현재 로그인된 사용자 정보 표시
         loadUserProfile()
 
-        val bottomNavigationView: BottomNavigationView = findViewById(R.id.bottom_navigation)
-        bottomNavigationView.selectedItemId = R.id.navigation_mypage // 마이페이지 아이템 선택 상태로 표시
+        val bottomNavigationView: BottomNavigationView = findViewById(R.id.bottomNavigationView)
+        bottomNavigationView.selectedItemId = R.id.menu_mypage // 마이페이지 아이템 선택 상태로 표시
 
-        bottomNavigationView.setOnNavigationItemSelectedListener {
-            when (it.itemId) {
-                R.id.navigation_search -> {
+        bottomNavigationView.setOnItemSelectedListener { item ->
+            when (item.itemId) {
+                R.id.menu_search -> {
                     // TODO: 검색 화면으로 이동
                     Toast.makeText(this, "마이페이지에서 검색 클릭", Toast.LENGTH_SHORT).show()
                     true
                 }
-                R.id.navigation_home -> {
-                    // TODO: 홈 화면으로 이동
-                    val intent = Intent(this, HomeActivity::class.java)
-                    startActivity(intent)
-                    finish()
-                    true
+                R.id.menu_home -> {
+                    try {
+                        val intent = Intent(this, HomeActivity::class.java)
+                        startActivity(intent)
+                        finish()
+                        true
+                    } catch (e: Exception) {
+                        Log.e(TAG, "홈 화면으로 이동 중 오류 발생", e)
+                        Toast.makeText(this, "화면 전환 중 오류가 발생했습니다.", Toast.LENGTH_SHORT).show()
+                        false
+                    }
                 }
-                R.id.navigation_mypage -> {
+                R.id.menu_mypage -> {
                     // 현재 화면
                     true
                 }
@@ -85,7 +91,11 @@ class MyPageActivity : AppCompatActivity() {
             startActivity(intent)
         }
 
-        // TODO: TODAY 섹션 착장 목록 표시 (RecyclerView 등)
+        // TODAY 섹션의 흰색 CardView 클릭 리스너
+        findViewById<CardView>(R.id.card_today).setOnClickListener {
+            val intent = Intent(this, OutfitUploadActivity::class.java)
+            startActivity(intent)
+        }
     }
 
     override fun onStart() {
