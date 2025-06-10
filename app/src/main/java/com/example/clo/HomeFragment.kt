@@ -7,21 +7,20 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
-import androidx.appcompat.app.AppCompatActivity
-import androidx.cardview.widget.CardView
+import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
+import androidx.cardview.widget.CardView
 
+// 기존 AdapterItem, User 데이터 클래스는 그대로 사용
 sealed class AdapterItem {
     object Header : AdapterItem()
     data class UserItem(val user: User) : AdapterItem()
@@ -36,65 +35,50 @@ data class User(
     val following: Int = 0
 )
 
-class HomeActivity : AppCompatActivity() {
+class HomeFragment : Fragment() {
     private lateinit var auth: FirebaseAuth
     private lateinit var db: FirebaseFirestore
     private lateinit var usersRecyclerView: RecyclerView
     private lateinit var userAdapter: UserAdapter
-    private lateinit var bottomNavigationView: BottomNavigationView
-    private val TAG = "HomeActivity"
+    private val TAG = "HomeFragment"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_home)
-
         auth = Firebase.auth
         db = Firebase.firestore
+    }
+
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
+        // Inflate the layout for this fragment
+        return inflater.inflate(R.layout.fragment_home, container, false)
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
 
         // 현재 로그인된 사용자가 없거나 SharedPreferences에 로그인 상태가 false이면 로그인 화면으로 이동
+        // (액티비티 단에서 처리되거나, 여기서는 프래그먼트 전환 로직에 따라 변경될 수 있음)
+        // 현재는 HomeActivity의 로직을 그대로 옮겨옴
         if (auth.currentUser == null || !isUserLoggedIn()) {
-            startActivity(Intent(this, LoginActivity::class.java))
-            finish()
+            startActivity(Intent(activity, LoginActivity::class.java))
+            activity?.finish()
             return
         }
 
-        usersRecyclerView = findViewById(R.id.recycler_view_outfits)
-        usersRecyclerView.layoutManager = LinearLayoutManager(this)
+        usersRecyclerView = view.findViewById(R.id.recycler_view_outfits)
+        usersRecyclerView.layoutManager = LinearLayoutManager(context)
 
-        // 헤더와 사용자 데이터를 포함하는 리스트 생성
         val adapterItems = mutableListOf<AdapterItem>()
         adapterItems.add(AdapterItem.Header)
 
         userAdapter = UserAdapter(adapterItems)
         usersRecyclerView.adapter = userAdapter
 
-        // Firebase에서 사용자 데이터 로드
         loadUsersFromFirebase()
-
-        // 하단 네비게이션 바 설정
-        bottomNavigationView = findViewById(R.id.bottom_navigation)
-        bottomNavigationView.selectedItemId = R.id.navigation_home
-
-        bottomNavigationView.setOnNavigationItemSelectedListener {
-            when (it.itemId) {
-                R.id.navigation_search -> {
-                    val intent = Intent(this, SearchActivity::class.java)
-                    startActivity(intent)
-                    finish()
-                    true
-                }
-                R.id.navigation_home -> {
-                    true
-                }
-                R.id.navigation_mypage -> {
-                    val intent = Intent(this, MyPageActivity::class.java)
-                    startActivity(intent)
-                    finish()
-                    true
-                }
-                else -> false
-            }
-        }
     }
 
     private fun loadUsersFromFirebase() {
@@ -102,7 +86,7 @@ class HomeActivity : AppCompatActivity() {
             .get()
             .addOnSuccessListener { documents ->
                 val userItems = mutableListOf<AdapterItem>()
-                userItems.add(AdapterItem.Header) // 헤더는 항상 첫 번째
+                userItems.add(AdapterItem.Header)
                 
                 for (document in documents) {
                     val user = User(
@@ -110,7 +94,7 @@ class HomeActivity : AppCompatActivity() {
                         username = document.getString("name") ?: "사용자",
                         email = document.getString("email") ?: "",
                         profileImageUrl = document.getString("profileImageUrl"),
-                        followers = document.getLong("followers")?.toInt() ?: 0,
+                        followers = (document.get("followers") as? List<String>)?.size ?: 0,
                         following = document.getLong("following")?.toInt() ?: 0
                     )
                     userItems.add(AdapterItem.UserItem(user))
@@ -120,23 +104,26 @@ class HomeActivity : AppCompatActivity() {
             }
             .addOnFailureListener { e ->
                 Log.e(TAG, "사용자 데이터 로드 실패", e)
-                Toast.makeText(this, "사용자 데이터 로드 실패", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, "사용자 데이터 로드 실패", Toast.LENGTH_SHORT).show()
             }
     }
 
     override fun onStart() {
         super.onStart()
+        // 이 부분은 액티비티의 생명주기와 다르므로, 메인 액티비티에서 로그인 상태를 관리하는 것이 더 적절합니다.
+        // HomeActivity의 로직을 그대로 옮겨놓았지만, 추후 MainActivity에서 처리하는 것을 권장합니다.
         if (auth.currentUser == null || !isUserLoggedIn()) {
-            startActivity(Intent(this, LoginActivity::class.java))
-            finish()
+            startActivity(Intent(activity, LoginActivity::class.java))
+            activity?.finish()
         }
     }
 
     private fun isUserLoggedIn(): Boolean {
-        val sharedPref = getSharedPreferences("login_status", Context.MODE_PRIVATE)
-        return sharedPref.getBoolean("is_logged_in", false)
+        val sharedPref = activity?.getSharedPreferences("login_status", Context.MODE_PRIVATE)
+        return sharedPref?.getBoolean("is_logged_in", false) ?: false
     }
 
+    // UserAdapter 클래스는 HomeActivity에서 가져온 것을 그대로 사용합니다.
     private class UserAdapter(private var items: List<AdapterItem>) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
         private val VIEW_TYPE_HEADER = 0
         private val VIEW_TYPE_USER = 1

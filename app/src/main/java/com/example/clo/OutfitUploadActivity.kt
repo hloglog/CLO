@@ -21,12 +21,12 @@ class OutfitUploadActivity : AppCompatActivity() {
                     true
                 }
                 R.id.navigation_home -> {
-                    startActivity(Intent(this, HomeActivity::class.java))
+                    startActivity(Intent(this, MainActivity::class.java))
                     finish()
                     true
                 }
                 R.id.navigation_mypage -> {
-                    startActivity(Intent(this, MyPageActivity::class.java))
+                    startActivity(Intent(this, MyPageFragment::class.java))
                     finish()
                     true
                 }

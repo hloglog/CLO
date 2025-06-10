@@ -132,7 +132,7 @@ class ProfileSettingsActivity : AppCompatActivity() {
                     true
                 }
                 R.id.navigation_home -> {
-                    val intent = Intent(this, HomeActivity::class.java)
+                    val intent = Intent(this, MainActivity::class.java)
                     startActivity(intent)
                     finish()
                     true

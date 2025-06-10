@@ -86,7 +86,7 @@
             app:layout_constraintTop_toTopOf="@+id/text_like_count"
             app:layout_constraintBottom_toBottomOf="@+id/text_like_count"
             app:layout_constraintStart_toEndOf="@+id/text_like_count"
-            tools:srcCompat="@drawable/ic_heart_outline" /> <!-- TODO: 좋아요 하트 아이콘 필요 -->
+            tools:srcCompat="@drawable/ic_favorite_border_black_24dp" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
