@@ -108,19 +108,19 @@ class HomeActivity : AppCompatActivity() {
         outfitsRecyclerView.adapter = outfitAdapter
 
         // 하단 네비게이션 바 설정
-        bottomNavigationView = findViewById(R.id.bottom_navigation)
-        bottomNavigationView.selectedItemId = R.id.navigation_home
+        bottomNavigationView = findViewById(R.id.bottomNavigationView)
+        bottomNavigationView.selectedItemId = R.id.menu_home
 
-        bottomNavigationView.setOnNavigationItemSelectedListener {
+        bottomNavigationView.setOnItemSelectedListener {
             when (it.itemId) {
-                R.id.navigation_search -> {
+                R.id.menu_search -> {
                     Toast.makeText(this, "홈에서 검색 클릭", Toast.LENGTH_SHORT).show()
                     true
                 }
-                R.id.navigation_home -> {
+                R.id.menu_home -> {
                     true
                 }
-                R.id.navigation_mypage -> {
+                R.id.menu_mypage -> {
                     val intent = Intent(this, MyPageActivity::class.java)
                     startActivity(intent)
                     finish()
