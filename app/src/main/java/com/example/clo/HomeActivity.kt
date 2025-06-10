@@ -18,20 +18,8 @@ import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
-
-sealed class AdapterItem {
-    object Header : AdapterItem()
-    data class OutfitItem(val outfit: Outfit) : AdapterItem()
-}
-
-data class Outfit(
-    val id: String,
-    val username: String,
-    val profileImageUrl: String? = null,
-    val codiImageUrl: String? = null,
-    val outfitShotUrl: String? = null,
-    val likeCount: Int = 0
-)
+import com.example.clo.AdapterItem
+import com.example.clo.Outfit
 
 class HomeActivity : AppCompatActivity() {
     private lateinit var auth: FirebaseAuth
@@ -121,7 +109,7 @@ class HomeActivity : AppCompatActivity() {
                     true
                 }
                 R.id.menu_mypage -> {
-                    val intent = Intent(this, MyPageActivity::class.java)
+                    val intent = Intent(this, MyPageFragment::class.java)
                     startActivity(intent)
                     finish()
                     true
@@ -152,6 +140,7 @@ class HomeActivity : AppCompatActivity() {
             return when (items[position]) {
                 is AdapterItem.Header -> VIEW_TYPE_HEADER
                 is AdapterItem.OutfitItem -> VIEW_TYPE_OUTFIT
+                else -> VIEW_TYPE_OUTFIT // UserItem 등 예외는 Outfit으로 처리
             }
         }
 
@@ -178,9 +167,10 @@ class HomeActivity : AppCompatActivity() {
             when (holder) {
                 is HeaderViewHolder -> holder.bind()
                 is OutfitViewHolder -> {
-                    val outfitItem = items[position] as AdapterItem.OutfitItem
-                    holder.bind(outfitItem.outfit)
+                    val outfitItem = items[position] as? AdapterItem.OutfitItem
+                    outfitItem?.let { holder.bind(it.outfit) }
                 }
+                else -> {}
             }
         }
 

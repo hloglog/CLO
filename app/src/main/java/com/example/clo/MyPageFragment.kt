@@ -11,6 +11,7 @@ import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
+import androidx.cardview.widget.CardView
 import androidx.fragment.app.Fragment
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
@@ -76,8 +77,8 @@ class MyPageFragment : Fragment() {
         }
 
         // TODAY 섹션의 흰색 CardView 클릭 리스너
-        findViewById<CardView>(R.id.card_today).setOnClickListener {
-            val intent = Intent(this, OutfitUploadActivity::class.java)
+        view.findViewById<CardView>(R.id.card_today).setOnClickListener {
+            val intent = Intent(requireContext(), OutfitUploadActivity::class.java)
             startActivity(intent)
         }
     }
@@ -85,7 +86,10 @@ class MyPageFragment : Fragment() {
     override fun onResume() {
         super.onResume()
         // 화면이 다시 포커스를 받을 때마다 프로필 정보 새로고침
-        loadUserProfile()
+        // 네트워크 요청을 줄이기 위해 캐시된 데이터가 있으면 사용
+        if (textUsername.text.isNullOrEmpty()) {
+            loadUserProfile()
+        }
     }
 
     private fun isUserLoggedIn(): Boolean {
