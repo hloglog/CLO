@@ -49,23 +49,16 @@ class ProfileSettingsActivity : AppCompatActivity() {
 
         // 로그아웃 버튼 클릭 리스너
         buttonLogout.setOnClickListener {
-            // Firebase Authentication 로그아웃
             auth.signOut()
 
             // SharedPreferences에 저장된 로그인 상태 삭제
-            val sharedPref = getSharedPreferences("login_status", Context.MODE_PRIVATE)
-            with (sharedPref.edit()) {
-                putBoolean("is_logged_in", false)
-                remove("user_id")
-                apply()
-            }
+            val editor = getSharedPreferences("login_status", Context.MODE_PRIVATE).edit()
+            editor.putBoolean("is_logged_in", false)
+            editor.apply()
 
             Toast.makeText(this, "로그아웃되었습니다.", Toast.LENGTH_SHORT).show()
 
-            // 로그인 화면으로 이동
-            val intent = Intent(this, LoginActivity::class.java)
-            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-            startActivity(intent)
+            startActivity(Intent(this, LoginActivity::class.java))
             finish()
         }
 
@@ -123,11 +116,11 @@ class ProfileSettingsActivity : AppCompatActivity() {
 
         // 하단 네비게이션 바 설정
         val bottomNavigationView: BottomNavigationView = findViewById(R.id.bottom_navigation)
-        bottomNavigationView.selectedItemId = R.id.navigation_mypage
+        bottomNavigationView.selectedItemId = R.id.menu_mypage
 
-        bottomNavigationView.setOnNavigationItemSelectedListener {
+        bottomNavigationView.setOnItemSelectedListener {
             when (it.itemId) {
-                R.id.navigation_search -> {
+                R.id.menu_search -> {
                     Toast.makeText(this, "설정에서 검색 클릭", Toast.LENGTH_SHORT).show()
                     true
                 }
@@ -137,7 +130,7 @@ class ProfileSettingsActivity : AppCompatActivity() {
                     finish()
                     true
                 }
-                R.id.navigation_mypage -> true
+                R.id.menu_mypage -> true
                 else -> false
             }
         }

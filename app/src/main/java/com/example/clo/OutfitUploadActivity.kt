@@ -12,11 +12,11 @@ class OutfitUploadActivity : AppCompatActivity() {
         setContentView(R.layout.activity_outfit_upload)
 
         val bottomNavigationView = findViewById<BottomNavigationView>(R.id.bottom_navigation)
-        bottomNavigationView.selectedItemId = R.id.navigation_home
+        bottomNavigationView.selectedItemId = R.id.menu_mypage
 
-        bottomNavigationView.setOnNavigationItemSelectedListener {
+        bottomNavigationView.setOnItemSelectedListener {
             when (it.itemId) {
-                R.id.navigation_search -> {
+                R.id.menu_search -> {
                     Toast.makeText(this, "검색 클릭", Toast.LENGTH_SHORT).show()
                     true
                 }

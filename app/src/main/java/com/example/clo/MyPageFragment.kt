@@ -75,7 +75,11 @@ class MyPageFragment : Fragment() {
             startActivity(intent)
         }
 
-        // TODO: TODAY 섹션 착장 목록 표시 (RecyclerView 등)
+        // TODAY 섹션의 흰색 CardView 클릭 리스너
+        findViewById<CardView>(R.id.card_today).setOnClickListener {
+            val intent = Intent(this, OutfitUploadActivity::class.java)
+            startActivity(intent)
+        }
     }
 
     override fun onResume() {

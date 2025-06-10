@@ -55,10 +55,17 @@ dependencies {
     // Google Play Services (더 안정적인 버전)
     implementation("com.google.android.gms:play-services-auth:20.6.0")
     implementation("com.google.android.gms:play-services-base:18.2.0")
+    // Google Play Services
+    implementation("com.google.android.gms:play-services-auth:20.7.0")
+    implementation("com.google.android.gms:play-services-base:18.3.0")
     
     // Navigation
     implementation("androidx.navigation:navigation-fragment-ktx:2.7.7")
     implementation("androidx.navigation:navigation-ui-ktx:2.7.7")
+
+    // Image Loading
+    implementation("com.github.bumptech.glide:glide:4.16.0")
+    annotationProcessor("com.github.bumptech.glide:compiler:4.16.0")
 
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
