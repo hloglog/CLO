@@ -30,10 +30,10 @@ class LoginActivity : AppCompatActivity() {
         }
         db = Firebase.firestore
 
-        val etEmail = findViewById<EditText>(R.id.etEmail)
-        val etPassword = findViewById<EditText>(R.id.etPassword)
+        val etEmail = findViewById<EditText>(R.id.editEmail)
+        val etPassword = findViewById<EditText>(R.id.editPassword)
         val btnLogin = findViewById<Button>(R.id.btnLogin)
-        val tvSwitchToSignUp = findViewById<TextView>(R.id.tvSwitchToSignUp)
+        val textGoSignUp = findViewById<TextView>(R.id.textGoSignUp)
 
         btnLogin.setOnClickListener {
             val email = etEmail.text.toString().trim()
@@ -104,7 +104,7 @@ class LoginActivity : AppCompatActivity() {
                 }
         }
 
-        tvSwitchToSignUp.setOnClickListener {
+        textGoSignUp.setOnClickListener {
             startActivity(Intent(this, SignUpActivity::class.java))
             finish()
         }

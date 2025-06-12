@@ -18,6 +18,9 @@ import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
+import androidx.navigation.NavController
+import androidx.navigation.fragment.findNavController
+import androidx.navigation.NavOptions
 
 class MyPageFragment : Fragment() {
     private lateinit var auth: FirebaseAuth
@@ -72,15 +75,17 @@ class MyPageFragment : Fragment() {
         // CLOSET 버튼 클릭 리스너
         val buttonCloset = view.findViewById<Button>(R.id.button_closet)
         buttonCloset.setOnClickListener {
-            val intent = Intent(activity, ClosetActivity::class.java)
-            startActivity(intent)
+            findNavController().navigate(
+                R.id.menu_closet,
+                null,
+                NavOptions.Builder()
+                    .setPopUpTo(R.id.menu_mypage, false)
+                    .build()
+            )
         }
 
-        // TODAY 섹션의 흰색 CardView 클릭 리스너
-        view.findViewById<CardView>(R.id.card_today).setOnClickListener {
-            val intent = Intent(requireContext(), OutfitUploadActivity::class.java)
-            startActivity(intent)
-        }
+        // TODAY 섹션 클릭 리스너 (레이아웃 변경으로 인해 제거됨)
+        // TODO: 새로운 TODAY 섹션에 대한 클릭 리스너 추가 필요
     }
 
     override fun onResume() {
