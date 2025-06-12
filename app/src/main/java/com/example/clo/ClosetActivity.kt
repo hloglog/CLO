@@ -27,10 +27,10 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 class ClosetActivity : AppCompatActivity() {
-    private lateinit var topButton: Button
-    private lateinit var bottomButton: Button
-    private lateinit var shoesButton: Button
-    private lateinit var accessoriesButton: Button
+    private lateinit var topButton: com.google.android.material.button.MaterialButton
+    private lateinit var bottomButton: com.google.android.material.button.MaterialButton
+    private lateinit var shoesButton: com.google.android.material.button.MaterialButton
+    private lateinit var accessoriesButton: com.google.android.material.button.MaterialButton
     private lateinit var clothesRecyclerView: RecyclerView
     private var currentPhotoPath: String? = null
     private var pendingAction: (() -> Unit)? = null
@@ -80,29 +80,68 @@ class ClosetActivity : AppCompatActivity() {
         accessoriesButton = findViewById(R.id.accessoriesButton)
         clothesRecyclerView = findViewById(R.id.clothesRecyclerView)
 
-        // Set underline for category buttons
-        topButton.paintFlags = topButton.paintFlags or Paint.UNDERLINE_TEXT_FLAG
-        bottomButton.paintFlags = bottomButton.paintFlags or Paint.UNDERLINE_TEXT_FLAG
-        shoesButton.paintFlags = shoesButton.paintFlags or Paint.UNDERLINE_TEXT_FLAG
-        accessoriesButton.paintFlags = accessoriesButton.paintFlags or Paint.UNDERLINE_TEXT_FLAG
+        // Set up category buttons
+        setupCategoryButtons()
 
         // Initialize RecyclerView
         clothesRecyclerView.layoutManager = GridLayoutManager(this, 2)
         // TODO: Set adapter when you have data to display
 
         // Set up add button click listener
-        findViewById<Button>(R.id.addButton).setOnClickListener {
+        findViewById<com.google.android.material.floatingactionbutton.FloatingActionButton>(R.id.addButton).setOnClickListener {
             if (isActivityActive) {
                 showImageSourceDialog()
             }
         }
     }
 
+    private fun setupCategoryButtons() {
+        // 초기 상태: 상의 선택
+        selectCategory("상의")
+        
+        topButton.setOnClickListener { selectCategory("상의") }
+        bottomButton.setOnClickListener { selectCategory("하의") }
+        shoesButton.setOnClickListener { selectCategory("신발") }
+        accessoriesButton.setOnClickListener { selectCategory("기타") }
+    }
+
+    private fun selectCategory(category: String) {
+        // 모든 버튼을 기본 스타일로 초기화
+        resetAllButtons()
+        
+        when (category) {
+            "상의" -> {
+                topButton.setBackgroundColor(resources.getColor(R.color.primary_color, theme))
+                topButton.setTextColor(resources.getColor(R.color.white, theme))
+            }
+            "하의" -> {
+                bottomButton.setBackgroundColor(resources.getColor(R.color.primary_color, theme))
+                bottomButton.setTextColor(resources.getColor(R.color.white, theme))
+            }
+            "신발" -> {
+                shoesButton.setBackgroundColor(resources.getColor(R.color.primary_color, theme))
+                shoesButton.setTextColor(resources.getColor(R.color.white, theme))
+            }
+            "기타" -> {
+                accessoriesButton.setBackgroundColor(resources.getColor(R.color.primary_color, theme))
+                accessoriesButton.setTextColor(resources.getColor(R.color.white, theme))
+            }
+        }
+    }
+
+    private fun resetAllButtons() {
+        val buttons = listOf(topButton, bottomButton, shoesButton, accessoriesButton)
+        buttons.forEach { button ->
+            button.setBackgroundColor(resources.getColor(R.color.white, theme))
+            button.setTextColor(resources.getColor(R.color.text_secondary, theme))
+        }
+    }
+
     private fun setupBottomNavigation() {
         val bottomNavigationView = findViewById<BottomNavigationView>(R.id.bottomNavigationView)
-        bottomNavigationView.selectedItemId = R.id.menu_mypage
+        bottomNavigationView.selectedItemId = R.id.menu_home
 
-        bottomNavigationView.setOnNavigationItemSelectedListener {
+        bottomNavigationView.setOnItemSelectedListener {
             when (it.itemId) {
                 R.id.menu_search -> {
                     val intent = Intent(this, MainActivity::class.java)
@@ -255,12 +294,5 @@ class ClosetActivity : AppCompatActivity() {
             }
             pendingAction = null
         }
-    }
-
-    private fun resetAllUnderlines() {
-        topButton.paintFlags = topButton.paintFlags and Paint.UNDERLINE_TEXT_FLAG.inv()
-        bottomButton.paintFlags = bottomButton.paintFlags and Paint.UNDERLINE_TEXT_FLAG.inv()
-        shoesButton.paintFlags = shoesButton.paintFlags and Paint.UNDERLINE_TEXT_FLAG.inv()
-        accessoriesButton.paintFlags = accessoriesButton.paintFlags and Paint.UNDERLINE_TEXT_FLAG.inv()
     }
 } 

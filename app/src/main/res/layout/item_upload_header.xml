@@ -4,26 +4,29 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/card_upload_outfit"
     android:layout_width="match_parent"
-    android:layout_height="230dp"
-    android:layout_marginTop="30dp"
-    android:layout_marginStart="30dp"
-    android:layout_marginEnd="30dp"
-    android:layout_marginBottom="30dp"
-    app:cardCornerRadius="8dp">
+    android:layout_height="120dp"
+    android:layout_marginTop="24dp"
+    android:layout_marginStart="24dp"
+    android:layout_marginEnd="24dp"
+    android:layout_marginBottom="16dp"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="4dp"
+    app:cardBackgroundColor="@color/white">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:padding="16dp">
+        android:padding="24dp">
 
         <TextView
             android:id="@+id/text_upload_outfit"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="오늘의 착장 업로드\n              ➜"
+            android:text="오늘의 착장 업로드"
             android:textColor="@color/black"
-            android:textSize="35sp"
+            android:textSize="24sp"
             android:textStyle="bold"
+            android:fontFamily="@font/notable_regular"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
@@ -31,13 +34,12 @@
 
         <ImageView
             android:id="@+id/icon_upload_arrow"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
             android:src="@drawable/ic_arrow_right"
             app:layout_constraintTop_toTopOf="@+id/text_upload_outfit"
             app:layout_constraintBottom_toBottomOf="@+id/text_upload_outfit"
-            app:layout_constraintStart_toEndOf="@+id/text_upload_outfit"
-            android:layout_marginStart="8dp"
+            app:layout_constraintEnd_toEndOf="parent"
             android:contentDescription="업로드" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
