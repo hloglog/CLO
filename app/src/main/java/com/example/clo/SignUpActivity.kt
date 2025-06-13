@@ -31,11 +31,11 @@ class SignUpActivity : AppCompatActivity() {
         auth = Firebase.auth
         db = Firebase.firestore
 
-        val etEmail = findViewById<EditText>(R.id.etEmail)
-        val etPassword = findViewById<EditText>(R.id.etPassword)
-        val etPasswordConfirm = findViewById<EditText>(R.id.etPasswordConfirm)
+        val etEmail = findViewById<EditText>(R.id.editEmail)
+        val etPassword = findViewById<EditText>(R.id.editPassword)
+        val etPasswordConfirm = findViewById<EditText>(R.id.editPasswordConfirm)
         val btnSignUp = findViewById<Button>(R.id.btnSignUp)
-        val tvSwitchToLogin = findViewById<TextView>(R.id.tvSwitchToLogin)
+        val tvSwitchToLogin = findViewById<TextView>(R.id.textGoLogin)
 
         btnSignUp.setOnClickListener {
             // 입력값 가져오기

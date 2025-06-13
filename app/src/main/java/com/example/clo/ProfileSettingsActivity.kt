@@ -8,7 +8,6 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -111,27 +110,6 @@ class ProfileSettingsActivity : AppCompatActivity() {
                 Toast.makeText(this, "오류가 발생했습니다: ${e.message}", Toast.LENGTH_SHORT).show()
                 buttonDone.isEnabled = true
                 buttonDone.text = "완료"
-            }
-        }
-
-        // 하단 네비게이션 바 설정
-        val bottomNavigationView: BottomNavigationView = findViewById(R.id.bottom_navigation)
-        bottomNavigationView.selectedItemId = R.id.menu_mypage
-
-        bottomNavigationView.setOnItemSelectedListener {
-            when (it.itemId) {
-                R.id.menu_search -> {
-                    Toast.makeText(this, "설정에서 검색 클릭", Toast.LENGTH_SHORT).show()
-                    true
-                }
-                R.id.menu_home -> {
-                    val intent = Intent(this, MainActivity::class.java)
-                    startActivity(intent)
-                    finish()
-                    true
-                }
-                R.id.menu_mypage -> true
-                else -> false
             }
         }
     }
