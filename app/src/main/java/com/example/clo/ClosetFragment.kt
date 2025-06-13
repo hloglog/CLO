@@ -27,6 +27,12 @@ import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.*
 import android.app.Activity
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
+import com.google.firebase.firestore.Query
 
 class ClosetFragment : Fragment() {
     private lateinit var topButton: MaterialButton
@@ -34,6 +40,10 @@ class ClosetFragment : Fragment() {
     private lateinit var shoesButton: MaterialButton
     private lateinit var accessoriesButton: MaterialButton
     private lateinit var clothesRecyclerView: RecyclerView
+    private lateinit var clothesAdapter: ClothesAdapter
+    private lateinit var auth: FirebaseAuth
+    private lateinit var db: FirebaseFirestore
+    
     private var currentPhotoPath: String? = null
     private var isFragmentActive = true
     
@@ -59,6 +69,12 @@ class ClosetFragment : Fragment() {
     companion object {
         private const val PERMISSIONS_REQUEST = 100
         private const val TAG = "ClosetFragment"
+    }
+    
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        auth = Firebase.auth
+        db = Firebase.firestore
     }
     
     override fun onCreateView(
@@ -90,9 +106,10 @@ class ClosetFragment : Fragment() {
         // Set up category buttons
         setupCategoryButtons()
 
-        // Initialize RecyclerView
+        // Initialize RecyclerView with adapter
+        clothesAdapter = ClothesAdapter()
         clothesRecyclerView.layoutManager = GridLayoutManager(requireContext(), 2)
-        // TODO: Set adapter when you have data to display
+        clothesRecyclerView.adapter = clothesAdapter
 
         // Set up add button click listener
         view.findViewById<FloatingActionButton>(R.id.addButton).setOnClickListener {
@@ -134,6 +151,9 @@ class ClosetFragment : Fragment() {
                 accessoriesButton.setTextColor(resources.getColor(R.color.white, requireContext().theme))
             }
         }
+        
+        // 선택된 카테고리의 옷을 로드
+        loadClothes(category)
     }
 
     private fun resetAllButtons() {
@@ -232,5 +252,42 @@ class ClosetFragment : Fragment() {
                 }
             }
         }
+    }
+    
+    private fun loadClothes(category: String) {
+        val userId = auth.currentUser?.uid ?: return
+        
+        Log.d(TAG, "Loading clothes for category: $category")
+        
+        db.collection("clothes")
+            .whereEqualTo("userId", userId)
+            .whereEqualTo("category", category)
+            .orderBy("timestamp", Query.Direction.DESCENDING)
+            .get()
+            .addOnSuccessListener { documents ->
+                Log.d(TAG, "Successfully loaded ${documents.size()} clothes")
+                
+                val clothesList = documents.mapNotNull { doc ->
+                    val imageUrl = doc.getString("imageUrl")
+                    if (imageUrl != null) {
+                        Log.d(TAG, "Found image URL: $imageUrl")
+                        ClosetActivity.ClothingItem(
+                            id = doc.id,
+                            imageUrl = imageUrl,
+                            category = category
+                        )
+                    } else {
+                        Log.e(TAG, "Image URL is null for document: ${doc.id}")
+                        null
+                    }
+                }
+                
+                Log.d(TAG, "Processed ${clothesList.size} valid clothing items")
+                clothesAdapter.submitList(clothesList)
+            }
+            .addOnFailureListener { e ->
+                Log.e(TAG, "Error loading clothes", e)
+                Toast.makeText(requireContext(), "옷장을 불러오는데 실패했습니다.", Toast.LENGTH_SHORT).show()
+            }
     }
 } 
