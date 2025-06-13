@@ -154,6 +154,7 @@
                             android:layout_marginBottom="12dp">
 
                             <com.google.android.material.card.MaterialCardView
+                                android:id="@+id/todayTopCard"
                                 android:layout_width="0dp"
                                 android:layout_height="160dp"
                                 android:layout_weight="1"
@@ -163,6 +164,7 @@
                                 app:cardBackgroundColor="@color/gray_light">
 
                                 <ImageView
+                                    android:id="@+id/todayTopImage"
                                     android:layout_width="match_parent"
                                     android:layout_height="match_parent"
                                     android:src="@drawable/default_profile_image"
@@ -171,6 +173,7 @@
                             </com.google.android.material.card.MaterialCardView>
 
                             <com.google.android.material.card.MaterialCardView
+                                android:id="@+id/todayBottomCard"
                                 android:layout_width="0dp"
                                 android:layout_height="160dp"
                                 android:layout_weight="1"
@@ -180,6 +183,7 @@
                                 app:cardBackgroundColor="@color/gray_light">
 
                                 <ImageView
+                                    android:id="@+id/todayBottomImage"
                                     android:layout_width="match_parent"
                                     android:layout_height="match_parent"
                                     android:src="@drawable/default_profile_image"
@@ -196,6 +200,7 @@
                             android:orientation="horizontal">
 
                             <com.google.android.material.card.MaterialCardView
+                                android:id="@+id/todayShoesCard"
                                 android:layout_width="0dp"
                                 android:layout_height="160dp"
                                 android:layout_weight="1"
@@ -205,6 +210,7 @@
                                 app:cardBackgroundColor="@color/gray_light">
 
                                 <ImageView
+                                    android:id="@+id/todayShoesImage"
                                     android:layout_width="match_parent"
                                     android:layout_height="match_parent"
                                     android:src="@drawable/default_profile_image"
@@ -213,6 +219,7 @@
                             </com.google.android.material.card.MaterialCardView>
 
                             <com.google.android.material.card.MaterialCardView
+                                android:id="@+id/todayAccessoriesCard"
                                 android:layout_width="0dp"
                                 android:layout_height="160dp"
                                 android:layout_weight="1"
@@ -222,6 +229,7 @@
                                 app:cardBackgroundColor="@color/gray_light">
 
                                 <ImageView
+                                    android:id="@+id/todayAccessoriesImage"
                                     android:layout_width="match_parent"
                                     android:layout_height="match_parent"
                                     android:src="@drawable/default_profile_image"

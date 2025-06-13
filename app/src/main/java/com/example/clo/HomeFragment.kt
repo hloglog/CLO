@@ -133,24 +133,8 @@ class HomeFragment : Fragment() {
                 // 현재 사용자 게시글을 먼저, 그 다음에 다른 사용자 게시글을 합치기
                 val sortedDocuments = currentUserOutfits + otherUserOutfits
                 
-                for (document in sortedDocuments) {
-                    val todayOutfit = TodayOutfit(
-                        id = document.id,
-                        userId = document.getString("userId") ?: "",
-                        username = "", // 나중에 사용자 정보에서 채워짐
-                        topImageUrl = document.getString("topImageUrl") ?: "",
-                        bottomImageUrl = document.getString("bottomImageUrl") ?: "",
-                        shoesImageUrl = document.getString("shoesImageUrl") ?: "",
-                        accessoriesImageUrl = document.getString("accessoriesImageUrl") ?: "",
-                        outfitShotUrl = document.getString("outfitShotUrl"),
-                        timestamp = document.getTimestamp("timestamp") ?: com.google.firebase.Timestamp.now(),
-                        likeCount = document.getLong("likeCount")?.toInt() ?: 0,
-                        likedBy = document.get("likedBy") as? List<String> ?: emptyList()
-                    )
-                    
-                    // 사용자 정보도 함께 가져오기
-                    loadUserInfoAndAddOutfit(todayOutfit, outfitItems)
-                }
+                // 모든 사용자 정보를 먼저 가져온 후 순서대로 추가
+                loadAllUserInfoAndAddOutfits(sortedDocuments, outfitItems)
             }
             .addOnFailureListener { e ->
                 Log.e(TAG, "오늘의 착장 데이터 로드 실패", e)
@@ -158,24 +142,62 @@ class HomeFragment : Fragment() {
             }
     }
     
-    private fun loadUserInfoAndAddOutfit(todayOutfit: TodayOutfit, outfitItems: MutableList<AdapterItem>) {
-        db.collection("users").document(todayOutfit.userId).get()
-            .addOnSuccessListener { userDoc ->
-                val username = userDoc.getString("name") ?: "사용자"
-                val profileImageUrl = userDoc.getString("profileImageUrl")
-                val updatedOutfit = todayOutfit.copy(
-                    username = username,
-                    profileImageUrl = profileImageUrl
-                )
-                outfitItems.add(AdapterItem.TodayOutfitItem(updatedOutfit))
-                userAdapter.updateItems(outfitItems)
-            }
-            .addOnFailureListener { e ->
-                Log.e(TAG, "사용자 정보 로드 실패", e)
-                // 사용자 정보가 없어도 착장은 표시
-                outfitItems.add(AdapterItem.TodayOutfitItem(todayOutfit))
-                userAdapter.updateItems(outfitItems)
-            }
+    private fun loadAllUserInfoAndAddOutfits(documents: List<com.google.firebase.firestore.QueryDocumentSnapshot>, outfitItems: MutableList<AdapterItem>) {
+        val outfits = mutableListOf<TodayOutfit>()
+        var loadedCount = 0
+        
+        for (document in documents) {
+            val todayOutfit = TodayOutfit(
+                id = document.id,
+                userId = document.getString("userId") ?: "",
+                username = "", // 나중에 사용자 정보에서 채워짐
+                topImageUrl = document.getString("topImageUrl") ?: "",
+                bottomImageUrl = document.getString("bottomImageUrl") ?: "",
+                shoesImageUrl = document.getString("shoesImageUrl") ?: "",
+                accessoriesImageUrl = document.getString("accessoriesImageUrl") ?: "",
+                outfitShotUrl = document.getString("outfitShotUrl"),
+                timestamp = document.getTimestamp("timestamp") ?: com.google.firebase.Timestamp.now(),
+                likeCount = document.getLong("likeCount")?.toInt() ?: 0,
+                likedBy = document.get("likedBy") as? List<String> ?: emptyList()
+            )
+            
+            outfits.add(todayOutfit)
+            
+            // 사용자 정보 가져오기
+            db.collection("users").document(todayOutfit.userId).get()
+                .addOnSuccessListener { userDoc ->
+                    val username = userDoc.getString("name") ?: "사용자"
+                    val profileImageUrl = userDoc.getString("profileImageUrl")
+                    val updatedOutfit = todayOutfit.copy(
+                        username = username,
+                        profileImageUrl = profileImageUrl
+                    )
+                    
+                    // 정렬된 순서대로 추가
+                    val index = outfits.indexOf(todayOutfit)
+                    if (index != -1) {
+                        outfits[index] = updatedOutfit
+                    }
+                    
+                    loadedCount++
+                    
+                    // 모든 사용자 정보가 로드되면 순서대로 추가
+                    if (loadedCount == documents.size) {
+                        outfitItems.addAll(outfits.map { AdapterItem.TodayOutfitItem(it) })
+                        userAdapter.updateItems(outfitItems)
+                    }
+                }
+                .addOnFailureListener { e ->
+                    Log.e(TAG, "사용자 정보 로드 실패", e)
+                    // 사용자 정보가 없어도 착장은 표시
+                    loadedCount++
+                    
+                    if (loadedCount == documents.size) {
+                        outfitItems.addAll(outfits.map { AdapterItem.TodayOutfitItem(it) })
+                        userAdapter.updateItems(outfitItems)
+                    }
+                }
+        }
     }
 
     override fun onStart() {

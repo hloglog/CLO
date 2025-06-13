@@ -134,29 +134,41 @@ class SearchFragment : Fragment() {
                     if (name.contains(query, ignoreCase = true) ||
                         email.contains(query, ignoreCase = true)) {
                         Log.d(TAG, "일치하는 사용자 발견: $name")
-                        val searchResult = SearchResult(
-                            id = document.id,
-                            username = name,
-                            profileImageUrl = document.getString("profileImageUrl"),
-                            codiImageUrl = null, // TODO: 실제 코디 이미지 URL 추가
-                            outfitShotUrl = null, // TODO: 실제 아웃핏샷 URL 추가
-                            likeCount = 0, // TODO: 실제 좋아요 수 추가
-                            description = "사용자", // TODO: 실제 설명 추가
-                            followers = (document.get("followers") as? List<String>)?.size ?: 0,
-                            following = document.getLong("following")?.toInt() ?: 0
-                        )
-                        searchResults.add(searchResult)
+                        
+                        // 팔로워 수 가져오기
+                        val followersList = document.get("followers") as? List<String> ?: emptyList()
+                        val followersCount = followersList.size
+                        
+                        // 해당 사용자의 오늘의 착장 데이터 가져오기
+                        loadUserTodayOutfit(userId, name, document.getString("profileImageUrl"), followersCount, searchResults)
                     }
                 }
-
-                searchAdapter.updateResults(searchResults)
-                showNoResults(searchResults.isEmpty())
             }
             .addOnFailureListener { e ->
                 Log.e(TAG, "사용자 검색 실패", e)
                 searchAdapter.updateResults(emptyList())
                 showNoResults(true)
             }
+    }
+
+    private fun loadUserTodayOutfit(userId: String, username: String, profileImageUrl: String?, followersCount: Int, searchResults: MutableList<SearchResult>) {
+        // 단순히 사용자 정보만으로 검색 결과 생성 (오늘 착장 정보는 제거)
+        val searchResult = SearchResult(
+            id = userId,
+            username = username,
+            profileImageUrl = profileImageUrl,
+            codiImageUrl = null,
+            outfitShotUrl = null,
+            likeCount = 0,
+            description = "팔로워 ${followersCount}명",
+            followers = followersCount,
+            following = 0
+        )
+        searchResults.add(searchResult)
+        
+        // 모든 검색 결과가 로드되면 어댑터 업데이트
+        searchAdapter.updateResults(searchResults)
+        showNoResults(searchResults.isEmpty())
     }
 
     private fun showNoResults(show: Boolean) {
@@ -204,15 +216,10 @@ class SearchFragment : Fragment() {
             private val imageProfile: ImageView = itemView.findViewById(R.id.image_profile)
             private val textUsername: TextView = itemView.findViewById(R.id.text_username)
             private val textDescription: TextView = itemView.findViewById(R.id.text_description)
-            private val imageCodi: ImageView = itemView.findViewById(R.id.image_codi)
-            private val imageOutfitShot: ImageView = itemView.findViewById(R.id.image_outfit_shot)
-            private val textLikeCount: TextView = itemView.findViewById(R.id.text_like_count)
-            private val iconLike: ImageView = itemView.findViewById(R.id.icon_like)
 
             fun bind(result: SearchResult) {
                 textUsername.text = result.username
-                textDescription.text = "팔로워 ${result.followers}명"
-                textLikeCount.text = result.likeCount.toString()
+                textDescription.text = result.description
                 
                 // 프로필 이미지 로드 (Glide 사용)
                 if (result.profileImageUrl != null && result.profileImageUrl.isNotEmpty()) {
@@ -224,10 +231,6 @@ class SearchFragment : Fragment() {
                 } else {
                     imageProfile.setImageResource(R.drawable.default_profile_image)
                 }
-
-                // TODO: 코디 이미지와 아웃핏샷 이미지 로드
-                // result.codiImageUrl이 있다면 imageCodi에 로드
-                // result.outfitShotUrl이 있다면 imageOutfitShot에 로드
 
                 itemView.setOnClickListener {
                     onItemClick(result.id) // 클릭 시 userId 전달
