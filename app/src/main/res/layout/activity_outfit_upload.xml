@@ -247,6 +247,46 @@
 
             </LinearLayout>
 
+            <!-- 착용샷 섹션 -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="착용샷 촬영"
+                android:textColor="@android:color/white"
+                android:textSize="30sp"
+                android:textStyle="bold"
+                android:layout_gravity="center"
+                android:layout_marginTop="30dp"/>
+
+            <!-- 착용샷 촬영 버튼 -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/cameraButton"
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:layout_marginTop="15dp"
+                android:layout_marginHorizontal="20dp"
+                android:text="📷 착용샷 촬영하기"
+                android:textSize="18sp"
+                android:textColor="@color/black"
+                android:fontFamily="@font/notable_regular"
+                app:cornerRadius="30dp"
+                app:backgroundTint="@color/white"
+                app:strokeColor="@color/gray_dark"
+                app:strokeWidth="2dp"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"/>
+
+            <!-- 착용샷 이미지 -->
+            <ImageView
+                android:id="@+id/outfitShotImageView"
+                android:layout_width="match_parent"
+                android:layout_height="300dp"
+                android:layout_marginTop="15dp"
+                android:layout_marginHorizontal="20dp"
+                android:background="@color/gray_light"
+                android:scaleType="centerCrop"
+                android:visibility="gone"
+                android:contentDescription="착용샷"/>
+
             <!-- 게시글 올리기 버튼 -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/postButton"

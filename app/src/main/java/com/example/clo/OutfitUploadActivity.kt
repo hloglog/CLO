@@ -1,14 +1,24 @@
 package com.example.clo
 
+import android.Manifest
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Bundle
+import android.provider.MediaStore
 import android.util.Log
 import android.view.View
+import android.widget.ImageView
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.card.MaterialCardView
@@ -18,11 +28,18 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.Timestamp
-import com.bumptech.glide.Glide
+import com.google.firebase.storage.FirebaseStorage
+import com.google.firebase.storage.ktx.storage
+import java.io.File
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+import java.util.UUID
 
 class OutfitUploadActivity : AppCompatActivity() {
     private lateinit var auth: FirebaseAuth
     private lateinit var db: FirebaseFirestore
+    private lateinit var storage: FirebaseStorage
     
     // 카테고리 버튼들
     private lateinit var topButton: MaterialButton
@@ -40,6 +57,11 @@ class OutfitUploadActivity : AppCompatActivity() {
     private lateinit var todayShoesCard: MaterialCardView
     private lateinit var todayAccessoriesCard: MaterialCardView
     
+    // 착용샷 관련
+    private lateinit var outfitShotImageView: ImageView
+    private var outfitShotUri: Uri? = null
+    private var currentPhotoPath: String? = null
+    
     // 선택된 옷들
     private var selectedTop: ClosetActivity.ClothingItem? = null
     private var selectedBottom: ClosetActivity.ClothingItem? = null
@@ -48,6 +70,24 @@ class OutfitUploadActivity : AppCompatActivity() {
     
     // 현재 게시글 ID (수정 시 사용)
     private var currentTodayId: String? = null
+    
+    // 카메라 권한 요청 코드
+    private val CAMERA_PERMISSION_REQUEST_CODE = 100
+    
+    // 카메라 결과를 받기 위한 ActivityResultLauncher
+    private val cameraLauncher = registerForActivityResult(
+        ActivityResultContracts.TakePicture()
+    ) { success ->
+        if (success) {
+            outfitShotUri?.let { uri ->
+                // 착용샷 이미지뷰에 표시
+                Glide.with(this)
+                    .load(uri)
+                    .into(outfitShotImageView)
+                outfitShotImageView.visibility = View.VISIBLE
+            }
+        }
+    }
     
     companion object {
         private const val TAG = "OutfitUploadActivity"
@@ -59,6 +99,7 @@ class OutfitUploadActivity : AppCompatActivity() {
         
         auth = Firebase.auth
         db = Firebase.firestore
+        storage = Firebase.storage
         
         initializeViews()
         setupBottomNavigation()
@@ -89,6 +130,15 @@ class OutfitUploadActivity : AppCompatActivity() {
         todayBottomCard = findViewById(R.id.todayBottomCard)
         todayShoesCard = findViewById(R.id.todayShoesCard)
         todayAccessoriesCard = findViewById(R.id.todayAccessoriesCard)
+        
+        // 착용샷 관련
+        outfitShotImageView = findViewById(R.id.outfitShotImageView)
+        
+        // 카메라 버튼 클릭 리스너
+        val cameraButton = findViewById<MaterialButton>(R.id.cameraButton)
+        cameraButton.setOnClickListener {
+            takeOutfitShot()
+        }
         
         // 게시글 올리기 버튼
         val postButton = findViewById<MaterialButton>(R.id.postButton)
@@ -239,32 +289,22 @@ class OutfitUploadActivity : AppCompatActivity() {
             )
             imageView.scaleType = android.widget.ImageView.ScaleType.CENTER_CROP
             
-            // Glide로 이미지 로드
             Glide.with(this)
                 .load(item.imageUrl)
-                .placeholder(R.drawable.placeholder_image)
-                .error(R.drawable.error_image)
                 .into(imageView)
             
             card.addView(imageView)
         } else {
-            // 선택된 옷이 없으면 기본 상태로 복원
+            // 선택된 옷이 없으면 기본 상태로 표시
             card.setCardBackgroundColor(resources.getColor(R.color.gray_light, theme))
-            
-            // 기존 뷰 제거하고 TextView 추가
             card.removeAllViews()
             
             val textView = android.widget.TextView(this)
-            textView.layoutParams = android.view.ViewGroup.LayoutParams(
-                android.view.ViewGroup.LayoutParams.WRAP_CONTENT,
-                android.view.ViewGroup.LayoutParams.WRAP_CONTENT
-            )
             textView.text = categoryName
             textView.setTextColor(resources.getColor(R.color.gray_dark, theme))
             textView.textSize = 16f
-            textView.gravity = android.view.Gravity.CENTER
             
-            // TextView를 카드 중앙에 배치
+            // MaterialCardView에 맞는 LayoutParams 생성
             val layoutParams = android.widget.FrameLayout.LayoutParams(
                 android.view.ViewGroup.LayoutParams.WRAP_CONTENT,
                 android.view.ViewGroup.LayoutParams.WRAP_CONTENT
@@ -325,6 +365,51 @@ class OutfitUploadActivity : AppCompatActivity() {
             return
         }
         
+        // 착용샷이 있으면 Firebase Storage에 업로드
+        if (outfitShotUri != null) {
+            uploadOutfitShotToStorage { outfitShotUrl ->
+                saveTodayOutfit(outfitShotUrl)
+            }
+        } else {
+            // 착용샷이 없으면 바로 저장
+            saveTodayOutfit(null)
+        }
+    }
+    
+    private fun uploadOutfitShotToStorage(onComplete: (String?) -> Unit) {
+        val userId = auth.currentUser?.uid ?: return
+        
+        outfitShotUri?.let { uri ->
+            // Firebase Storage에 업로드할 파일 경로 생성
+            val fileName = "outfit_shots/${userId}_${UUID.randomUUID()}.jpg"
+            val storageRef = storage.reference.child(fileName)
+            
+            // 로딩 상태 표시
+            Toast.makeText(this, "착용샷 업로드 중...", Toast.LENGTH_SHORT).show()
+            
+            // 이미지 업로드
+            storageRef.putFile(uri)
+                .addOnSuccessListener { taskSnapshot ->
+                    // 업로드 성공 시 다운로드 URL 가져오기
+                    storageRef.downloadUrl.addOnSuccessListener { downloadUri ->
+                        onComplete(downloadUri.toString())
+                    }.addOnFailureListener { e ->
+                        Log.e(TAG, "착용샷 다운로드 URL 가져오기 실패", e)
+                        Toast.makeText(this, "착용샷 업로드 실패: ${e.message}", Toast.LENGTH_SHORT).show()
+                        onComplete(null)
+                    }
+                }
+                .addOnFailureListener { e ->
+                    Log.e(TAG, "착용샷 업로드 실패", e)
+                    Toast.makeText(this, "착용샷 업로드 실패: ${e.message}", Toast.LENGTH_SHORT).show()
+                    onComplete(null)
+                }
+        } ?: onComplete(null)
+    }
+    
+    private fun saveTodayOutfit(outfitShotUrl: String?) {
+        val userId = auth.currentUser?.uid ?: return
+        
         // Firebase에 저장할 데이터
         val todayOutfit = hashMapOf(
             "userId" to userId,
@@ -332,6 +417,7 @@ class OutfitUploadActivity : AppCompatActivity() {
             "bottomImageUrl" to (selectedBottom?.imageUrl ?: ""),
             "shoesImageUrl" to (selectedShoes?.imageUrl ?: ""),
             "accessoriesImageUrl" to (selectedAccessories?.imageUrl ?: ""),
+            "outfitShotUrl" to (outfitShotUrl ?: ""),
             "timestamp" to Timestamp.now()
         )
         
@@ -511,5 +597,76 @@ class OutfitUploadActivity : AppCompatActivity() {
                 Log.e(TAG, "옷 정보 로드 실패", e)
                 onLoaded(null)
             }
+    }
+    
+    // 착용샷 촬영 함수
+    private fun takeOutfitShot() {
+        if (checkCameraPermission()) {
+            openCamera()
+        } else {
+            requestCameraPermission()
+        }
+    }
+    
+    // 카메라 권한 확인
+    private fun checkCameraPermission(): Boolean {
+        return ContextCompat.checkSelfPermission(
+            this,
+            Manifest.permission.CAMERA
+        ) == PackageManager.PERMISSION_GRANTED
+    }
+    
+    // 카메라 권한 요청
+    private fun requestCameraPermission() {
+        ActivityCompat.requestPermissions(
+            this,
+            arrayOf(Manifest.permission.CAMERA),
+            CAMERA_PERMISSION_REQUEST_CODE
+        )
+    }
+    
+    // 카메라 열기
+    private fun openCamera() {
+        val photoFile = createImageFile()
+        photoFile?.let { file ->
+            outfitShotUri = FileProvider.getUriForFile(
+                this,
+                "${packageName}.fileprovider",
+                file
+            )
+            cameraLauncher.launch(outfitShotUri)
+        }
+    }
+    
+    // 이미지 파일 생성
+    private fun createImageFile(): File? {
+        val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
+        val imageFileName = "JPEG_${timeStamp}_"
+        val storageDir = getExternalFilesDir(android.os.Environment.DIRECTORY_PICTURES)
+        return File.createTempFile(imageFileName, ".jpg", storageDir)
+    }
+    
+    // 착용샷 업로드
+    private fun uploadOutfitShot(): String? {
+        return outfitShotUri?.toString()
+    }
+    
+    // 권한 요청 결과 처리
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        
+        when (requestCode) {
+            CAMERA_PERMISSION_REQUEST_CODE -> {
+                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    openCamera()
+                } else {
+                    Toast.makeText(this, "카메라 권한이 필요합니다.", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
     }
 } 

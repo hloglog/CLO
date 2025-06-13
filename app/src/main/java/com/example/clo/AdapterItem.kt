@@ -34,6 +34,7 @@ data class TodayOutfit(
     val bottomImageUrl: String,
     val shoesImageUrl: String,
     val accessoriesImageUrl: String,
+    val outfitShotUrl: String? = null,
     val timestamp: com.google.firebase.Timestamp,
     val username: String = "",
     val profileImageUrl: String? = null,
