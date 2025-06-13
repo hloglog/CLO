@@ -11,21 +11,26 @@ import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.request.RequestOptions
 import com.example.clo.databinding.ItemClothingBinding
 
-class ClothesAdapter : ListAdapter<ClosetActivity.ClothingItem, ClothesAdapter.ClothingViewHolder>(ClothingDiffCallback()) {
+class ClothesAdapter(
+    private val onItemClick: ((ClosetActivity.ClothingItem) -> Unit)? = null
+) : ListAdapter<ClosetActivity.ClothingItem, ClothesAdapter.ClothingViewHolder>(ClothingDiffCallback()) {
     companion object {
         private const val TAG = "ClothesAdapter"
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ClothingViewHolder {
         val binding = ItemClothingBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-        return ClothingViewHolder(binding)
+        return ClothingViewHolder(binding, onItemClick)
     }
 
     override fun onBindViewHolder(holder: ClothingViewHolder, position: Int) {
         holder.bind(getItem(position))
     }
 
-    class ClothingViewHolder(private val binding: ItemClothingBinding) : RecyclerView.ViewHolder(binding.root) {
+    class ClothingViewHolder(
+        private val binding: ItemClothingBinding,
+        private val onItemClick: ((ClosetActivity.ClothingItem) -> Unit)?
+    ) : RecyclerView.ViewHolder(binding.root) {
         fun bind(item: ClosetActivity.ClothingItem) {
             Log.d(TAG, "Loading image from URL: ${item.imageUrl}")
             
@@ -39,6 +44,10 @@ class ClothesAdapter : ListAdapter<ClosetActivity.ClothingItem, ClothesAdapter.C
                 .load(item.imageUrl)
                 .apply(requestOptions)
                 .into(binding.clothingImage)
+
+            binding.root.setOnClickListener {
+                onItemClick?.invoke(item)
+            }
         }
     }
 
