@@ -256,10 +256,10 @@
                 android:layout_marginHorizontal="20dp"
                 android:text="게시글 올리기"
                 android:textSize="18sp"
-                android:textColor="@color/white"
+                android:textColor="@color/black"
                 android:fontFamily="@font/notable_regular"
                 app:cornerRadius="30dp"
-                app:backgroundTint="@color/black"
+                app:backgroundTint="@color/white"
                 style="@style/Widget.MaterialComponents.Button"/>
 
         </LinearLayout>
