@@ -57,61 +57,86 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent">
 
-            <!-- 상의 (전체 너비, 상단 50% 높이) -->
-            <ImageView
-                android:id="@+id/top_image"
+            <!-- 왼쪽 50%: 옷 누끼들 -->
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/clothes_layout"
                 android:layout_width="0dp"
                 android:layout_height="0dp"
-                android:scaleType="fitCenter"
-                android:adjustViewBounds="true"
-                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintWidth_percent="0.5"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintHeight_percent="0.5"
-                tools:srcCompat="@drawable/placeholder_image" />
-
-            <!-- 하의 (전체 너비, 하단 50% 높이) -->
-            <ImageView
-                android:id="@+id/bottom_image"
-                android:layout_width="0dp"
-                android:layout_height="0dp"
-                android:scaleType="fitCenter"
-                android:adjustViewBounds="true"
-                app:layout_constraintTop_toBottomOf="@+id/top_image"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintHeight_percent="0.5"
-                tools:srcCompat="@drawable/placeholder_image" />
-
-            <!-- 신발 (하의 오른쪽 아래 겹치게, 컨테이너 너비의 40% 크기) -->
-            <ImageView
-                android:id="@+id/shoes_image"
-                android:layout_width="0dp"
-                android:layout_height="0dp"
-                android:scaleType="fitCenter"
-                android:adjustViewBounds="true"
-                app:layout_constraintDimensionRatio="1:1"
-                app:layout_constraintWidth_percent="0.4"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintBottom_toBottomOf="parent"
-                android:layout_marginEnd="16dp"
-                android:layout_marginBottom="16dp"
-                tools:srcCompat="@drawable/placeholder_image" />
-
-            <!-- 기타 (상의 오른쪽 상단 겹치게, 컨테이너 너비의 40% 크기) -->
-            <ImageView
-                android:id="@+id/accessories_image"
-                android:layout_width="0dp"
-                android:layout_height="0dp"
-                android:scaleType="fitCenter"
-                android:adjustViewBounds="true"
-                app:layout_constraintDimensionRatio="1:1"
-                app:layout_constraintWidth_percent="0.4"
-                app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
-                android:layout_marginEnd="16dp"
-                android:layout_marginTop="16dp"
+                app:layout_constraintBottom_toBottomOf="parent">
+
+                <!-- 상의 (전체 너비, 상단 50% 높이) -->
+                <ImageView
+                    android:id="@+id/top_image"
+                    android:layout_width="0dp"
+                    android:layout_height="0dp"
+                    android:scaleType="fitCenter"
+                    android:adjustViewBounds="true"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintHeight_percent="0.5"
+                    tools:srcCompat="@drawable/placeholder_image" />
+
+                <!-- 하의 (전체 너비, 하단 50% 높이) -->
+                <ImageView
+                    android:id="@+id/bottom_image"
+                    android:layout_width="0dp"
+                    android:layout_height="0dp"
+                    android:scaleType="fitCenter"
+                    android:adjustViewBounds="true"
+                    app:layout_constraintTop_toBottomOf="@+id/top_image"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintHeight_percent="0.5"
+                    tools:srcCompat="@drawable/placeholder_image" />
+
+                <!-- 신발 (하의 오른쪽 아래 겹치게, 컨테이너 너비의 40% 크기) -->
+                <ImageView
+                    android:id="@+id/shoes_image"
+                    android:layout_width="0dp"
+                    android:layout_height="0dp"
+                    android:scaleType="fitCenter"
+                    android:adjustViewBounds="true"
+                    app:layout_constraintDimensionRatio="1:1"
+                    app:layout_constraintWidth_percent="0.4"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    android:layout_marginEnd="8dp"
+                    android:layout_marginBottom="8dp"
+                    tools:srcCompat="@drawable/placeholder_image" />
+
+                <!-- 기타 (상의 오른쪽 상단 겹치게, 컨테이너 너비의 40% 크기) -->
+                <ImageView
+                    android:id="@+id/accessories_image"
+                    android:layout_width="0dp"
+                    android:layout_height="0dp"
+                    android:scaleType="fitCenter"
+                    android:adjustViewBounds="true"
+                    app:layout_constraintDimensionRatio="1:1"
+                    app:layout_constraintWidth_percent="0.4"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    android:layout_marginEnd="8dp"
+                    android:layout_marginTop="8dp"
+                    tools:srcCompat="@drawable/placeholder_image" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <!-- 오른쪽 50%: 착용샷 -->
+            <ImageView
+                android:id="@+id/outfit_shot_image"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:scaleType="centerCrop"
+                android:background="@color/gray_light"
+                app:layout_constraintWidth_percent="0.5"
+                app:layout_constraintStart_toEndOf="@+id/clothes_layout"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
                 tools:srcCompat="@drawable/placeholder_image" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>

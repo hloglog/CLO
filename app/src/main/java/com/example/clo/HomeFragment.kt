@@ -106,7 +106,34 @@ class HomeFragment : Fragment() {
                     Log.d(TAG, "현재 사용자가 이미 오늘 착장을 업로드함 - 여백 추가")
                 }
                 
+                // 게시글들을 정렬: 현재 사용자 게시글을 맨 위로, 나머지는 시간순
+                val currentUserOutfits = mutableListOf<com.google.firebase.firestore.QueryDocumentSnapshot>()
+                val otherUserOutfits = mutableListOf<com.google.firebase.firestore.QueryDocumentSnapshot>()
+                
+                // 현재 사용자와 다른 사용자의 게시글을 분리
                 for (document in documents) {
+                    val docUserId = document.getString("userId")
+                    if (docUserId == currentUserId) {
+                        currentUserOutfits.add(document)
+                    } else {
+                        otherUserOutfits.add(document)
+                    }
+                }
+                
+                // 현재 사용자 게시글을 시간순으로 정렬 (최신순)
+                currentUserOutfits.sortByDescending { doc ->
+                    doc.getTimestamp("timestamp") ?: com.google.firebase.Timestamp.now()
+                }
+                
+                // 다른 사용자 게시글을 시간순으로 정렬 (최신순)
+                otherUserOutfits.sortByDescending { doc ->
+                    doc.getTimestamp("timestamp") ?: com.google.firebase.Timestamp.now()
+                }
+                
+                // 현재 사용자 게시글을 먼저, 그 다음에 다른 사용자 게시글을 합치기
+                val sortedDocuments = currentUserOutfits + otherUserOutfits
+                
+                for (document in sortedDocuments) {
                     val todayOutfit = TodayOutfit(
                         id = document.id,
                         userId = document.getString("userId") ?: "",
@@ -115,6 +142,7 @@ class HomeFragment : Fragment() {
                         bottomImageUrl = document.getString("bottomImageUrl") ?: "",
                         shoesImageUrl = document.getString("shoesImageUrl") ?: "",
                         accessoriesImageUrl = document.getString("accessoriesImageUrl") ?: "",
+                        outfitShotUrl = document.getString("outfitShotUrl"),
                         timestamp = document.getTimestamp("timestamp") ?: com.google.firebase.Timestamp.now(),
                         likeCount = document.getLong("likeCount")?.toInt() ?: 0,
                         likedBy = document.get("likedBy") as? List<String> ?: emptyList()
@@ -242,6 +270,7 @@ class HomeFragment : Fragment() {
             private val bottomImageView: ImageView = itemView.findViewById(R.id.bottom_image)
             private val shoesImageView: ImageView = itemView.findViewById(R.id.shoes_image)
             private val accessoriesImageView: ImageView = itemView.findViewById(R.id.accessories_image)
+            private val outfitShotImageView: ImageView = itemView.findViewById(R.id.outfit_shot_image)
             
             // 현재 바인딩된 outfit 객체를 저장
             private var currentOutfit: TodayOutfit? = null
@@ -259,6 +288,18 @@ class HomeFragment : Fragment() {
                         .into(imageProfile)
                 } else {
                     imageProfile.setImageResource(R.drawable.default_profile_image)
+                }
+                
+                // 착용샷 이미지 로드
+                if (outfit.outfitShotUrl != null && outfit.outfitShotUrl.isNotEmpty()) {
+                    outfitShotImageView.visibility = View.VISIBLE
+                    Glide.with(itemView.context)
+                        .load(outfit.outfitShotUrl)
+                        .placeholder(R.drawable.placeholder_image)
+                        .error(R.drawable.placeholder_image)
+                        .into(outfitShotImageView)
+                } else {
+                    outfitShotImageView.visibility = View.GONE
                 }
                 
                 // 좋아요 수 표시
