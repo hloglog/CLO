@@ -1,8 +1,11 @@
 package com.example.clo
 
 import android.Manifest
+import android.app.ProgressDialog
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.Paint
 import android.net.Uri
 import android.os.Build
@@ -20,28 +23,53 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.example.clo.databinding.ActivityClosetBinding
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.FieldValue
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
+import com.google.firebase.storage.FirebaseStorage
+import com.google.firebase.storage.ktx.storage
+import com.google.firebase.storage.StorageReference
+import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.*
+import kotlinx.coroutines.*
+import com.google.firebase.firestore.Query
 
 class ClosetActivity : AppCompatActivity() {
-    private lateinit var topButton: com.google.android.material.button.MaterialButton
-    private lateinit var bottomButton: com.google.android.material.button.MaterialButton
-    private lateinit var shoesButton: com.google.android.material.button.MaterialButton
-    private lateinit var accessoriesButton: com.google.android.material.button.MaterialButton
+
+    private lateinit var binding: ActivityClosetBinding
+    private lateinit var topButton: Button
+    private lateinit var bottomButton: Button
+    private lateinit var shoesButton: Button
+    private lateinit var accessoriesButton: Button
+
     private lateinit var clothesRecyclerView: RecyclerView
     private var currentPhotoPath: String? = null
     private var pendingAction: (() -> Unit)? = null
     private var isActivityActive = true
     
+    private lateinit var auth: FirebaseAuth
+    private lateinit var db: FirebaseFirestore
+    private lateinit var storage: FirebaseStorage
+    private var progressDialog: ProgressDialog? = null
+    private var removeBgService: RemoveBgService? = null
+    private var clothingClassifier: ClothingClassifier? = null
+    private val coroutineScope = CoroutineScope(Dispatchers.Main + Job())
+    
+    private lateinit var clothesAdapter: ClothesAdapter
+    private var currentCategory: String = "상의" // 기본값
+    
     private val takePictureLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == RESULT_OK) {
-            // Handle the camera photo
             currentPhotoPath?.let { path ->
-                // Process the captured image
-                Toast.makeText(this, "이미지가 저장되었습니다: $path", Toast.LENGTH_SHORT).show()
+                processSelectedImage(File(path))
             }
         }
     }
@@ -49,8 +77,13 @@ class ClosetActivity : AppCompatActivity() {
     private val pickImageLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == RESULT_OK) {
             result.data?.data?.let { uri ->
-                // Handle the selected image
-                Toast.makeText(this, "이미지가 선택되었습니다", Toast.LENGTH_SHORT).show()
+                // Convert URI to File
+                val file = createTempFileFromUri(uri)
+                if (file != null) {
+                    processSelectedImage(file)
+                } else {
+                    Toast.makeText(this, "이미지 로드 실패", Toast.LENGTH_SHORT).show()
+                }
             }
         }
     }
@@ -58,27 +91,60 @@ class ClosetActivity : AppCompatActivity() {
     companion object {
         private const val PERMISSIONS_REQUEST = 100
         private const val TAG = "ClosetActivity"
+        private const val REMOVE_BG_API_KEY = "YOUR_REMOVE_BG_API_KEY" // TODO: Replace with your API key
     }
     
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_closet)
+        binding = ActivityClosetBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+        
         try {
             initializeViews()
+            initializeServices()
             setupBottomNavigation()
+            setupCategoryButtons()
+            setupRecyclerView()
+            loadClothes(currentCategory)
         } catch (e: Exception) {
             Log.e(TAG, "Error in onCreate", e)
-            Toast.makeText(this, "앱 초기화 중 오류가 발생했습니다.", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "초기화 중 오류가 발생했습니다.", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun initializeServices() {
+        auth = FirebaseAuth.getInstance()
+        db = FirebaseFirestore.getInstance()
+        storage = FirebaseStorage.getInstance()
+        removeBgService = RemoveBgService(this)
+        progressDialog = ProgressDialog(this)
+    }
+
+    private fun initializeClassifierAsync() {
+        coroutineScope.launch(Dispatchers.IO) {
+            try {
+                clothingClassifier = ClothingClassifier(this@ClosetActivity)
+                Log.d(TAG, "Classifier initialized successfully")
+            } catch (e: Exception) {
+                Log.e(TAG, "Error initializing classifier", e)
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(
+                        this@ClosetActivity,
+                        "이미지 분류기 초기화 실패: ${e.message}",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+            }
         }
     }
 
     private fun initializeViews() {
         // Initialize views
-        topButton = findViewById(R.id.topButton)
-        bottomButton = findViewById(R.id.bottomButton)
-        shoesButton = findViewById(R.id.shoesButton)
-        accessoriesButton = findViewById(R.id.accessoriesButton)
-        clothesRecyclerView = findViewById(R.id.clothesRecyclerView)
+        topButton = binding.topButton
+        bottomButton = binding.bottomButton
+        shoesButton = binding.shoesButton
+        accessoriesButton = binding.accessoriesButton
+        clothesRecyclerView = binding.clothesRecyclerView
 
         // Set up category buttons
         setupCategoryButtons()
@@ -88,58 +154,210 @@ class ClosetActivity : AppCompatActivity() {
         // TODO: Set adapter when you have data to display
 
         // Set up add button click listener
-        findViewById<com.google.android.material.floatingactionbutton.FloatingActionButton>(R.id.addButton).setOnClickListener {
+        binding.addButton.setOnClickListener {
             if (isActivityActive) {
                 showImageSourceDialog()
             }
         }
     }
 
-    private fun setupCategoryButtons() {
-        // 초기 상태: 상의 선택
-        selectCategory("상의")
-        
-        topButton.setOnClickListener { selectCategory("상의") }
-        bottomButton.setOnClickListener { selectCategory("하의") }
-        shoesButton.setOnClickListener { selectCategory("신발") }
-        accessoriesButton.setOnClickListener { selectCategory("기타") }
-    }
+    private fun processSelectedImage(imageFile: File) {
+        if (isFinishing || isDestroyed) return
 
-    private fun selectCategory(category: String) {
-        // 모든 버튼을 기본 스타일로 초기화
-        resetAllButtons()
-        
-        when (category) {
-            "상의" -> {
-                topButton.setBackgroundColor(resources.getColor(R.color.primary_color, theme))
-                topButton.setTextColor(resources.getColor(R.color.white, theme))
-            }
-            "하의" -> {
-                bottomButton.setBackgroundColor(resources.getColor(R.color.primary_color, theme))
-                bottomButton.setTextColor(resources.getColor(R.color.white, theme))
-            }
-            "신발" -> {
-                shoesButton.setBackgroundColor(resources.getColor(R.color.primary_color, theme))
-                shoesButton.setTextColor(resources.getColor(R.color.white, theme))
-            }
-            "기타" -> {
-                accessoriesButton.setBackgroundColor(resources.getColor(R.color.primary_color, theme))
-                accessoriesButton.setTextColor(resources.getColor(R.color.white, theme))
-            }
+        // Show loading dialog for background removal
+        showLoadingDialog("누끼 따는 중...")
+
+        // Step 1: Remove background
+        removeBgService?.removeBackground(imageFile) { result ->
+            result.fold(
+                onSuccess = { processedFile ->
+                    // Step 2: Classify clothing
+                    if (isFinishing || isDestroyed) return@fold
+                    runOnUiThread {
+                        showLoadingDialog("옷을 분류하는 중...")
+                    }
+                    
+                    try {
+                        // Initialize classifier if needed
+                        if (clothingClassifier == null) {
+                            clothingClassifier = ClothingClassifier(this@ClosetActivity)
+                        }
+
+                        val bitmap = BitmapFactory.decodeFile(processedFile.absolutePath)
+                        if (bitmap == null) {
+                            throw IllegalStateException("이미지를 불러올 수 없습니다.")
+                        }
+                        
+                        val category = clothingClassifier?.classify(bitmap)
+                            ?: throw IllegalStateException("이미지 분류를 실패했습니다.")
+                        
+                        // Step 3: Upload to Firebase
+                        if (!isFinishing && !isDestroyed) {
+                            uploadToFirebase(processedFile, category)
+                        }
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Error during image processing", e)
+                        runOnUiThread {
+                            dismissDialogSafely(progressDialog)
+                            if (!isFinishing && !isDestroyed) {
+                                val errorMessage = when (e) {
+                                    is IllegalStateException -> e.message ?: "옷 분류 중 오류가 발생했습니다."
+                                    else -> "이미지 처리 중 오류가 발생했습니다: ${e.message}"
+                                }
+                                Toast.makeText(this, errorMessage, Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                    }
+                },
+                onFailure = { exception ->
+                    Log.e(TAG, "Background removal failed", exception)
+                    runOnUiThread {
+                        dismissDialogSafely(progressDialog)
+                        if (!isFinishing && !isDestroyed) {
+                            Toast.makeText(this, "배경 제거 중 오류 발생: ${exception.message}", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                }
+            )
         }
     }
 
-    private fun resetAllButtons() {
-        val buttons = listOf(topButton, bottomButton, shoesButton, accessoriesButton)
-        buttons.forEach { button ->
-            button.setBackgroundColor(resources.getColor(R.color.white, theme))
-            button.setTextColor(resources.getColor(R.color.text_secondary, theme))
+    private fun uploadToFirebase(imageFile: File, category: String) {
+        if (isFinishing || isDestroyed) return
+
+        // Log file information
+        Log.d(TAG, "Uploading file: ${imageFile.absolutePath}, exists=${imageFile.exists()}, length=${imageFile.length()} bytes")
+
+        // Check if file exists and is readable
+        if (!imageFile.exists() || !imageFile.canRead()) {
+            Log.e(TAG, "File not accessible: ${imageFile.absolutePath}")
+            runOnUiThread {
+                dismissDialogSafely(progressDialog)
+                if (!isFinishing && !isDestroyed) {
+                    Toast.makeText(this, "이미지 파일을 읽을 수 없습니다.", Toast.LENGTH_SHORT).show()
+                }
+            }
+            return
+        }
+
+        // Check if file is empty (API error case)
+        if (imageFile.length() == 0L) {
+            Log.e(TAG, "File is empty: ${imageFile.absolutePath}")
+            runOnUiThread {
+                dismissDialogSafely(progressDialog)
+                if (!isFinishing && !isDestroyed) {
+                    Toast.makeText(this, "이미지 처리 중 오류가 발생했습니다. 다시 시도해주세요.", Toast.LENGTH_SHORT).show()
+                }
+            }
+            return
+        }
+
+        runOnUiThread {
+            showLoadingDialog("옷장에 추가하는 중...")
+        }
+        
+        val userId = auth.currentUser?.uid
+        if (userId == null) {
+            runOnUiThread {
+                dismissDialogSafely(progressDialog)
+                if (!isFinishing && !isDestroyed) {
+                    Toast.makeText(this, "로그인이 필요합니다.", Toast.LENGTH_SHORT).show()
+                }
+            }
+            return
+        }
+
+        // Create storage reference
+        val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
+        val storageRef = storage.reference
+        val imageRef = storageRef.child("users/$userId/$category/${timestamp}.png")
+
+        // Convert File to Uri using Uri.fromFile
+        val imageUri = Uri.fromFile(imageFile)
+        
+        // Log additional information
+        Log.d(TAG, "File URI: $imageUri")
+        Log.d(TAG, "Storage path: users/$userId/$category/${timestamp}.png")
+
+        // Upload file
+        imageRef.putFile(imageUri)
+            .addOnSuccessListener {
+                Log.d(TAG, "Image upload successful")
+                // Get download URL
+                imageRef.downloadUrl.addOnSuccessListener { downloadUri ->
+                    Log.d(TAG, "Download URL obtained: $downloadUri")
+                    
+                    // Create clothing document
+                    val clothingItem = hashMapOf(
+                        "userId" to userId,
+                        "category" to category,
+                        "imageUrl" to downloadUri.toString(),
+                        "timestamp" to FieldValue.serverTimestamp()
+                    )
+
+                    // Save to Firestore
+                    db.collection("clothes")
+                        .add(clothingItem)
+                        .addOnSuccessListener { documentRef ->
+                            Log.d(TAG, "Firestore document created successfully with ID: ${documentRef.id}")
+                            // Refresh the current category view
+                            loadClothes(category)
+                            runOnUiThread {
+                                dismissDialogSafely(progressDialog)
+                                if (!isFinishing && !isDestroyed) {
+                                    Toast.makeText(this, "옷장에 추가되었습니다.", Toast.LENGTH_SHORT).show()
+                                }
+                            }
+                        }
+                        .addOnFailureListener { e ->
+                            Log.e(TAG, "Firestore document creation failed", e)
+                            runOnUiThread {
+                                dismissDialogSafely(progressDialog)
+                                if (!isFinishing && !isDestroyed) {
+                                    Toast.makeText(this, "데이터베이스 저장 실패: ${e.message}", Toast.LENGTH_SHORT).show()
+                                }
+                            }
+                        }
+                }
+            }
+            .addOnFailureListener { e ->
+                Log.e(TAG, "Image upload failed", e)
+                runOnUiThread {
+                    dismissDialogSafely(progressDialog)
+                    if (!isFinishing && !isDestroyed) {
+                        Toast.makeText(this, "이미지 업로드 실패: ${e.message}", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+    }
+
+    private fun checkStoragePermission(): Boolean {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
+        } else {
+            true
+        }
+    }
+
+    private fun createTempFileFromUri(uri: Uri): File? {
+        return try {
+            val inputStream = contentResolver.openInputStream(uri)
+            val tempFile = File.createTempFile("temp_image", ".png", cacheDir)
+            inputStream?.use { input ->
+                tempFile.outputStream().use { output ->
+                    input.copyTo(output)
+                }
+            }
+            tempFile
+        } catch (e: Exception) {
+            Log.e(TAG, "Error creating temp file from URI", e)
+            null
         }
     }
 
     private fun setupBottomNavigation() {
-        val bottomNavigationView = findViewById<BottomNavigationView>(R.id.bottomNavigationView)
-        bottomNavigationView.selectedItemId = R.id.menu_home
+        val bottomNavigationView = binding.bottomNavigationView
+        bottomNavigationView.selectedItemId = R.id.menu_mypage
 
         bottomNavigationView.setOnItemSelectedListener {
             when (it.itemId) {
@@ -182,6 +400,10 @@ class ClosetActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         isActivityActive = false
+        clothingClassifier?.close()
+        coroutineScope.cancel()
+        dismissDialogSafely(progressDialog)
+        progressDialog = null
     }
 
     private fun showImageSourceDialog() {
@@ -295,4 +517,123 @@ class ClosetActivity : AppCompatActivity() {
             pendingAction = null
         }
     }
+
+    private fun resetAllUnderlines() {
+        topButton.paintFlags = topButton.paintFlags and Paint.UNDERLINE_TEXT_FLAG.inv()
+        bottomButton.paintFlags = bottomButton.paintFlags and Paint.UNDERLINE_TEXT_FLAG.inv()
+        shoesButton.paintFlags = shoesButton.paintFlags and Paint.UNDERLINE_TEXT_FLAG.inv()
+        accessoriesButton.paintFlags = accessoriesButton.paintFlags and Paint.UNDERLINE_TEXT_FLAG.inv()
+    }
+
+    private fun showDialogSafely(dialog: ProgressDialog) {
+        if (!isFinishing && !isDestroyed && !dialog.isShowing) {
+            dialog.show()
+        }
+    }
+
+    private fun dismissDialogSafely(dialog: ProgressDialog?) {
+        try {
+            if (!isFinishing && !isDestroyed && dialog?.isShowing == true) {
+                dialog.dismiss()
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error dismissing dialog", e)
+        }
+    }
+
+    private fun showLoadingDialog(message: String) {
+        if (!isFinishing && !isDestroyed) {
+            if (progressDialog == null) {
+                progressDialog = ProgressDialog(this)
+            }
+            progressDialog?.setMessage(message)
+            progressDialog?.show()
+        }
+    }
+
+    private fun setupRecyclerView() {
+        clothesAdapter = ClothesAdapter()
+        binding.clothesRecyclerView.apply {
+            layoutManager = GridLayoutManager(this@ClosetActivity, 2)
+            adapter = clothesAdapter
+        }
+    }
+
+    private fun setupCategoryButtons() {
+        binding.topButton.setOnClickListener {
+            updateCategorySelection("상의")
+            loadClothes("상의")
+        }
+        
+        binding.bottomButton.setOnClickListener {
+            updateCategorySelection("하의")
+            loadClothes("하의")
+        }
+        
+        binding.shoesButton.setOnClickListener {
+            updateCategorySelection("신발")
+            loadClothes("신발")
+        }
+        
+        binding.accessoriesButton.setOnClickListener {
+            updateCategorySelection("기타")
+            loadClothes("기타")
+        }
+    }
+
+    private fun updateCategorySelection(selectedCategory: String) {
+        currentCategory = selectedCategory
+        // 버튼 스타일 업데이트
+        binding.topButton.setBackgroundResource(if (selectedCategory == "상의") R.drawable.button_selected else R.drawable.button_normal)
+        binding.bottomButton.setBackgroundResource(if (selectedCategory == "하의") R.drawable.button_selected else R.drawable.button_normal)
+        binding.shoesButton.setBackgroundResource(if (selectedCategory == "신발") R.drawable.button_selected else R.drawable.button_normal)
+        binding.accessoriesButton.setBackgroundResource(if (selectedCategory == "기타") R.drawable.button_selected else R.drawable.button_normal)
+    }
+
+    private fun loadClothes(category: String) {
+        val userId = auth.currentUser?.uid ?: return
+        
+        showLoadingDialog("옷장을 불러오는 중...")
+        
+        Log.d(TAG, "Loading clothes for category: $category")
+        
+        db.collection("clothes")
+            .whereEqualTo("userId", userId)
+            .whereEqualTo("category", category)
+            .orderBy("timestamp", Query.Direction.DESCENDING)
+            .get()
+            .addOnSuccessListener { documents ->
+                Log.d(TAG, "Successfully loaded ${documents.size()} clothes")
+                
+                val clothesList = documents.mapNotNull { doc ->
+                    val imageUrl = doc.getString("imageUrl")
+                    if (imageUrl != null) {
+                        Log.d(TAG, "Found image URL: $imageUrl")
+                        ClothingItem(
+                            id = doc.id,
+                            imageUrl = imageUrl,
+                            category = category
+                        )
+                    } else {
+                        Log.e(TAG, "Image URL is null for document: ${doc.id}")
+                        null
+                    }
+                }
+                
+                Log.d(TAG, "Processed ${clothesList.size} valid clothing items")
+                clothesAdapter.submitList(clothesList)
+                dismissDialogSafely(progressDialog)
+            }
+            .addOnFailureListener { e ->
+                Log.e(TAG, "Error loading clothes", e)
+                dismissDialogSafely(progressDialog)
+                Toast.makeText(this, "옷장을 불러오는데 실패했습니다.", Toast.LENGTH_SHORT).show()
+            }
+    }
+
+    data class ClothingItem(
+        val id: String,
+        val imageUrl: String,
+        val category: String
+    )
 } 
