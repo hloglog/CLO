@@ -20,8 +20,6 @@ class FriendProfileActivity : AppCompatActivity() {
     private lateinit var usernameTextView: TextView
     private lateinit var followersTextView: TextView
     private lateinit var followButton: Button
-    private lateinit var closetButton: Button
-    private lateinit var bottomNavigationView: BottomNavigationView
 
     private var isFollowing = false
     private lateinit var firestore: FirebaseFirestore
@@ -41,8 +39,6 @@ class FriendProfileActivity : AppCompatActivity() {
         usernameTextView = findViewById(R.id.usernameTextView)
         followersTextView = findViewById(R.id.followersTextView)
         followButton = findViewById(R.id.followButton)
-        closetButton = findViewById(R.id.closetButton)
-        bottomNavigationView = findViewById(R.id.bottomNavigationView)
 
         // Get user ID from intent (e.g., from SearchActivity)
         friendUserId = intent.getStringExtra("userId")
@@ -58,15 +54,6 @@ class FriendProfileActivity : AppCompatActivity() {
         followButton.setOnClickListener {
             toggleFollowStatus()
         }
-
-        closetButton.setOnClickListener {
-            // Navigate to ClosetActivity with friend's user ID
-            val intent = Intent(this, ClosetActivity::class.java)
-            intent.putExtra("userId", friendUserId)
-            startActivity(intent)
-        }
-
-        setupBottomNavigationView()
     }
 
     private fun loadFriendProfile(userId: String) {
@@ -169,38 +156,8 @@ class FriendProfileActivity : AppCompatActivity() {
             followButton.setTextColor(ContextCompat.getColor(this, R.color.white))
         } else {
             followButton.text = "FOLLOW"
-            followButton.setBackgroundResource(R.drawable.button_background_white_border) // White border
+            followButton.setBackgroundResource(R.drawable.button_background_dark) // White border
             followButton.setTextColor(ContextCompat.getColor(this, R.color.white))
-        }
-    }
-
-    private fun setupBottomNavigationView() {
-        bottomNavigationView.selectedItemId = R.id.menu_mypage // Highlight profile icon
-        bottomNavigationView.setOnItemSelectedListener {
-            when (it.itemId) {
-                R.id.menu_search -> {
-                    val intent = Intent(this, MainActivity::class.java)
-                    intent.putExtra("fragment", "search")
-                    startActivity(intent)
-                    finish()
-                    true
-                }
-                R.id.menu_home -> {
-                    val intent = Intent(this, MainActivity::class.java)
-                    intent.putExtra("fragment", "home")
-                    startActivity(intent)
-                    finish()
-                    true
-                }
-                R.id.menu_mypage -> {
-                    val intent = Intent(this, MainActivity::class.java)
-                    intent.putExtra("fragment", "profile")
-                    startActivity(intent)
-                    finish()
-                    true
-                }
-                else -> false
-            }
         }
     }
 } 

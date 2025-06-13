@@ -43,11 +43,13 @@ import kotlinx.coroutines.*
 import com.google.firebase.firestore.Query
 
 class ClosetActivity : AppCompatActivity() {
+
     private lateinit var binding: ActivityClosetBinding
     private lateinit var topButton: Button
     private lateinit var bottomButton: Button
     private lateinit var shoesButton: Button
     private lateinit var accessoriesButton: Button
+
     private lateinit var clothesRecyclerView: RecyclerView
     private var currentPhotoPath: String? = null
     private var pendingAction: (() -> Unit)? = null
@@ -144,11 +146,8 @@ class ClosetActivity : AppCompatActivity() {
         accessoriesButton = binding.accessoriesButton
         clothesRecyclerView = binding.clothesRecyclerView
 
-        // Set underline for category buttons
-        topButton.paintFlags = topButton.paintFlags or Paint.UNDERLINE_TEXT_FLAG
-        bottomButton.paintFlags = bottomButton.paintFlags or Paint.UNDERLINE_TEXT_FLAG
-        shoesButton.paintFlags = shoesButton.paintFlags or Paint.UNDERLINE_TEXT_FLAG
-        accessoriesButton.paintFlags = accessoriesButton.paintFlags or Paint.UNDERLINE_TEXT_FLAG
+        // Set up category buttons
+        setupCategoryButtons()
 
         // Initialize RecyclerView
         clothesRecyclerView.layoutManager = GridLayoutManager(this, 2)
@@ -360,7 +359,7 @@ class ClosetActivity : AppCompatActivity() {
         val bottomNavigationView = binding.bottomNavigationView
         bottomNavigationView.selectedItemId = R.id.menu_mypage
 
-        bottomNavigationView.setOnNavigationItemSelectedListener {
+        bottomNavigationView.setOnItemSelectedListener {
             when (it.itemId) {
                 R.id.menu_search -> {
                     val intent = Intent(this, MainActivity::class.java)

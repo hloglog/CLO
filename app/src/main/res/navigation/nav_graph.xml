@@ -18,6 +18,12 @@
         tools:layout="@layout/fragment_search" />
 
     <fragment
+        android:id="@+id/menu_closet"
+        android:name="com.example.clo.ClosetFragment"
+        android:label="Closet"
+        tools:layout="@layout/fragment_closet" />
+
+    <fragment
         android:id="@+id/menu_mypage"
         android:name="com.example.clo.MyPageFragment"
         android:label="MyPage"

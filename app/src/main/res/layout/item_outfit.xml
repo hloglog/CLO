@@ -4,23 +4,25 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginBottom="20dp"
-    android:layout_marginStart="30dp"
-    android:layout_marginEnd="30dp"
-    app:cardCornerRadius="8dp">
+    android:layout_marginBottom="16dp"
+    android:layout_marginStart="24dp"
+    android:layout_marginEnd="24dp"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="4dp"
+    app:cardBackgroundColor="@color/white">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="16dp">
+        android:padding="20dp">
 
         <!-- 프로필 섹션 -->
         <ImageView
             android:id="@+id/image_profile"
             android:layout_width="50dp"
             android:layout_height="50dp"
-            android:layout_marginTop="16dp"
-            android:layout_marginStart="16dp"
+            android:layout_marginTop="0dp"
+            android:layout_marginStart="0dp"
             android:contentDescription="프로필 사진"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintStart_toStartOf="parent"
@@ -30,10 +32,11 @@
             android:id="@+id/text_username"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
+            android:layout_marginStart="12dp"
             android:textColor="@color/black"
-            android:textSize="20sp"
-            android:textStyle="normal"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:fontFamily="@font/notable_regular"
             app:layout_constraintStart_toEndOf="@+id/image_profile"
             app:layout_constraintTop_toTopOf="@+id/image_profile"
             app:layout_constraintBottom_toBottomOf="@+id/image_profile"
@@ -42,22 +45,23 @@
         <!-- 착장 섹션 -->
         <ImageView
             android:id="@+id/image_codi"
-            android:layout_width="150dp"
-            android:layout_height="345dp"
-            android:layout_marginTop="16dp"
-            android:layout_marginStart="16dp"
+            android:layout_width="0dp"
+            android:layout_height="300dp"
+            android:layout_marginTop="20dp"
+            android:layout_marginEnd="8dp"
             android:scaleType="centerCrop"
             android:contentDescription="오늘의 코디 사진"
             app:layout_constraintTop_toBottomOf="@+id/image_profile"
             app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/image_outfit_shot"
             tools:srcCompat="@tools:sample/avatars" />
 
         <ImageView
             android:id="@+id/image_outfit_shot"
-            android:layout_width="150dp"
+            android:layout_width="0dp"
             android:layout_height="0dp"
-            android:layout_marginTop="16dp"
-            android:layout_marginStart="16dp"
+            android:layout_marginTop="20dp"
+            android:layout_marginStart="8dp"
             android:scaleType="centerCrop"
             android:contentDescription="착장 샷 사진"
             app:layout_constraintTop_toBottomOf="@+id/image_profile"
@@ -70,17 +74,18 @@
             android:id="@+id/text_like_count"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:textColor="@color/black"
-            android:textSize="16sp"
+            android:layout_marginTop="12dp"
+            android:textColor="@color/gray_dark"
+            android:textSize="14sp"
+            android:fontFamily="@font/notable_regular"
             app:layout_constraintBottom_toBottomOf="@+id/image_codi"
             app:layout_constraintStart_toStartOf="@+id/image_outfit_shot"
             tools:text="123" />
 
         <ImageView
             android:id="@+id/icon_like"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
             android:layout_marginStart="4dp"
             android:contentDescription="좋아요"
             app:layout_constraintTop_toTopOf="@+id/text_like_count"
