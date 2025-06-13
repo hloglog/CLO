@@ -185,14 +185,20 @@ class HomeActivity : AppCompatActivity() {
         class OutfitViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
             private val imageProfile: ImageView = itemView.findViewById(R.id.image_profile)
             private val textUsername: TextView = itemView.findViewById(R.id.text_username)
-            private val imageCodi: ImageView = itemView.findViewById(R.id.image_codi)
-            private val imageOutfitShot: ImageView = itemView.findViewById(R.id.image_outfit_shot)
+            private val topImage: ImageView = itemView.findViewById(R.id.top_image)
+            private val bottomImage: ImageView = itemView.findViewById(R.id.bottom_image)
+            private val shoesImage: ImageView = itemView.findViewById(R.id.shoes_image)
+            private val accessoriesImage: ImageView = itemView.findViewById(R.id.accessories_image)
+            private val outfitShotImage: ImageView = itemView.findViewById(R.id.outfit_shot_image)
             private val textLikeCount: TextView = itemView.findViewById(R.id.text_like_count)
             private val iconLike: ImageView = itemView.findViewById(R.id.icon_like)
 
             fun bind(outfit: Outfit) {
                 textUsername.text = outfit.username
                 textLikeCount.text = outfit.likeCount.toString()
+                
+                // TODO: 실제 이미지 로드 로직 추가
+                // 현재는 더미 데이터이므로 실제 이미지 로드가 필요
             }
         }
     }

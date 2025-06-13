@@ -3,6 +3,7 @@ package com.example.clo
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
+import android.view.View
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
@@ -20,6 +21,12 @@ class FriendProfileActivity : AppCompatActivity() {
     private lateinit var usernameTextView: TextView
     private lateinit var followersTextView: TextView
     private lateinit var followButton: Button
+    
+    // TODAY 섹션 이미지뷰들
+    private lateinit var todayTopImage: ImageView
+    private lateinit var todayBottomImage: ImageView
+    private lateinit var todayShoesImage: ImageView
+    private lateinit var todayAccessoriesImage: ImageView
 
     private var isFollowing = false
     private lateinit var firestore: FirebaseFirestore
@@ -39,6 +46,12 @@ class FriendProfileActivity : AppCompatActivity() {
         usernameTextView = findViewById(R.id.usernameTextView)
         followersTextView = findViewById(R.id.followersTextView)
         followButton = findViewById(R.id.followButton)
+        
+        // TODAY 섹션 이미지뷰들 초기화
+        todayTopImage = findViewById(R.id.todayTopImage)
+        todayBottomImage = findViewById(R.id.todayBottomImage)
+        todayShoesImage = findViewById(R.id.todayShoesImage)
+        todayAccessoriesImage = findViewById(R.id.todayAccessoriesImage)
 
         // Get user ID from intent (e.g., from SearchActivity)
         friendUserId = intent.getStringExtra("userId")
@@ -79,6 +92,9 @@ class FriendProfileActivity : AppCompatActivity() {
                     // 현재 사용자가 이 친구를 팔로우하고 있는지 확인
                     isFollowing = followersList.contains(currentUserId)
                     updateFollowButtonUI()
+                    
+                    // 친구의 오늘 착장 로드
+                    loadFriendTodayOutfit(userId)
 
                 } else {
                     Log.d("FriendProfileActivity", "No such document")
@@ -90,6 +106,77 @@ class FriendProfileActivity : AppCompatActivity() {
                 Log.e("FriendProfileActivity", "Error getting user profile: ", exception)
                 usernameTextView.text = "Error loading profile"
             }
+    }
+
+    private fun loadFriendTodayOutfit(userId: String) {
+        // 인덱스 없이 작동하도록 단순한 쿼리 사용
+        firestore.collection("today")
+            .whereEqualTo("userId", userId)
+            .limit(1)
+            .get()
+            .addOnSuccessListener { documents ->
+                if (!documents.isEmpty) {
+                    val document = documents.documents[0]
+                    
+                    // 오늘 날짜인지 확인 (클라이언트에서 필터링)
+                    val timestamp = document.getTimestamp("timestamp")
+                    val isToday = isTimestampToday(timestamp)
+                    
+                    if (isToday) {
+                        // 각 이미지 로드
+                        loadImageIntoView(todayTopImage, document.getString("topImageUrl"))
+                        loadImageIntoView(todayBottomImage, document.getString("bottomImageUrl"))
+                        loadImageIntoView(todayShoesImage, document.getString("shoesImageUrl"))
+                        loadImageIntoView(todayAccessoriesImage, document.getString("accessoriesImageUrl"))
+                        
+                        Log.d("FriendProfileActivity", "친구의 오늘 착장 로드 완료")
+                    } else {
+                        Log.d("FriendProfileActivity", "친구의 오늘 착장이 아닙니다")
+                        setDefaultImages()
+                    }
+                } else {
+                    Log.d("FriendProfileActivity", "친구의 오늘 착장이 없습니다")
+                    // 오늘 착장이 없는 경우 기본 이미지 표시
+                    setDefaultImages()
+                }
+            }
+            .addOnFailureListener { e ->
+                Log.e("FriendProfileActivity", "오늘 착장 로드 실패", e)
+                setDefaultImages()
+            }
+    }
+    
+    private fun isTimestampToday(timestamp: com.google.firebase.Timestamp?): Boolean {
+        if (timestamp == null) return false
+        
+        val calendar = java.util.Calendar.getInstance()
+        val today = java.util.Calendar.getInstance()
+        
+        calendar.time = timestamp.toDate()
+        
+        return calendar.get(java.util.Calendar.YEAR) == today.get(java.util.Calendar.YEAR) &&
+               calendar.get(java.util.Calendar.DAY_OF_YEAR) == today.get(java.util.Calendar.DAY_OF_YEAR)
+    }
+    
+    private fun loadImageIntoView(imageView: ImageView, imageUrl: String?) {
+        if (imageUrl != null && imageUrl.isNotEmpty()) {
+            imageView.visibility = View.VISIBLE
+            Glide.with(this)
+                .load(imageUrl)
+                .placeholder(R.drawable.placeholder_image)
+                .error(R.drawable.error_image)
+                .into(imageView)
+        } else {
+            imageView.visibility = View.GONE
+        }
+    }
+    
+    private fun setDefaultImages() {
+        // 오늘 착장이 없을 때 기본 이미지 표시
+        todayTopImage.setImageResource(R.drawable.placeholder_image)
+        todayBottomImage.setImageResource(R.drawable.placeholder_image)
+        todayShoesImage.setImageResource(R.drawable.placeholder_image)
+        todayAccessoriesImage.setImageResource(R.drawable.placeholder_image)
     }
 
     private fun toggleFollowStatus() {

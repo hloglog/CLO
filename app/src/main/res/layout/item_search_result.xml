@@ -11,110 +11,46 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="16dp">
+        android:orientation="horizontal"
+        android:padding="16dp"
+        android:gravity="center_vertical">
 
-        <!-- 사용자 정보 헤더 -->
+        <!-- 프로필 이미지 -->
+        <de.hdodenhof.circleimageview.CircleImageView
+            android:id="@+id/image_profile"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:src="@drawable/default_profile_image"
+            android:scaleType="centerCrop"
+            app:civ_border_color="@color/white"
+            app:civ_border_width="2dp"
+            android:contentDescription="프로필 이미지" />
+
+        <!-- 사용자 정보 -->
         <LinearLayout
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:layout_marginBottom="12dp">
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:layout_marginStart="16dp">
 
-            <!-- 프로필 이미지 -->
-            <ImageView
-                android:id="@+id/image_profile"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:src="@drawable/ic_person_black_24dp"
-                android:background="@drawable/circle_background"
-                android:scaleType="centerCrop"
-                android:contentDescription="프로필 이미지" />
-
-            <!-- 사용자 정보 -->
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical"
-                android:layout_marginStart="12dp">
-
-                <TextView
-                    android:id="@+id/text_username"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="사용자명"
-                    android:textSize="16sp"
-                    android:textStyle="bold"
-                    android:textColor="@color/white" />
-
-                <TextView
-                    android:id="@+id/text_description"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="스타일 설명"
-                    android:textSize="14sp"
-                    android:textColor="@color/gray"
-                    android:layout_marginTop="2dp" />
-
-            </LinearLayout>
-
-            <!-- 좋아요 정보 -->
-            <LinearLayout
+            <TextView
+                android:id="@+id/text_username"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical">
+                android:text="사용자명"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="@color/white" />
 
-                <ImageView
-                    android:id="@+id/icon_like"
-                    android:layout_width="16dp"
-                    android:layout_height="16dp"
-                    android:src="@drawable/ic_favorite_border_black_24dp"
-                    android:layout_marginEnd="4dp"
-                    android:contentDescription="좋아요 아이콘" />
-
-                <TextView
-                    android:id="@+id/text_like_count"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="0"
-                    android:textSize="14sp"
-                    android:textColor="@color/gray" />
-
-            </LinearLayout>
-
-        </LinearLayout>
-
-        <!-- 이미지 영역 -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:weightSum="2">
-
-            <!-- 코디 이미지 -->
-            <ImageView
-                android:id="@+id/image_codi"
-                android:layout_width="0dp"
-                android:layout_height="120dp"
-                android:layout_weight="1"
-                android:layout_marginEnd="4dp"
-                android:background="@drawable/image_placeholder_background"
-                android:scaleType="centerCrop"
-                android:contentDescription="코디 이미지" />
-
-            <!-- 아웃핏샷 이미지 -->
-            <ImageView
-                android:id="@+id/image_outfit_shot"
-                android:layout_width="0dp"
-                android:layout_height="120dp"
-                android:layout_weight="1"
-                android:layout_marginStart="4dp"
-                android:background="@drawable/image_placeholder_background"
-                android:scaleType="centerCrop"
-                android:contentDescription="아웃핏샷 이미지" />
+            <TextView
+                android:id="@+id/text_description"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="팔로워 0명"
+                android:textSize="14sp"
+                android:textColor="@color/gray"
+                android:layout_marginTop="4dp" />
 
         </LinearLayout>
 
