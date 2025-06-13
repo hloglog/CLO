@@ -50,7 +50,7 @@
                 tools:srcCompat="@tools:sample/avatars" />
 
             <!-- 이미지 수정 버튼 -->
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/button_change_image"
                 android:layout_width="0dp"
                 android:layout_height="56dp"
@@ -58,16 +58,22 @@
                 android:layout_marginStart="32dp"
                 android:layout_marginEnd="32dp"
                 android:text="이미지 수정"
-                android:textColor="@color/black"
+                android:textColor="@color/white"
                 android:textSize="18sp"
                 android:textStyle="bold"
                 android:fontFamily="@font/notable_regular"
-                android:background="@drawable/bg_input"
-                android:backgroundTint="@color/white"
-                app:cornerRadius="28dp"
+
+                app:cornerRadius="10dp"
+                app:strokeColor="@color/white"
+                app:strokeWidth="2.5dp"
+                app:backgroundTint="@color/black"
+
                 app:layout_constraintTop_toBottomOf="@+id/image_profile"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"/>
+                app:layout_constraintEnd_toEndOf="parent"
+                app:rippleColor="@color/white" />
+
+
 
             <!-- 이름 입력 필드 -->
             <TextView
@@ -138,7 +144,7 @@
                 tools:text="eyhh" />
 
             <!-- 로그아웃 버튼 -->
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/button_logout"
                 android:layout_width="0dp"
                 android:layout_height="56dp"
@@ -150,15 +156,19 @@
                 android:textSize="18sp"
                 android:textStyle="bold"
                 android:fontFamily="@font/notable_regular"
-                android:background="@drawable/bg_input"
-                android:backgroundTint="@color/gray_dark"
-                app:cornerRadius="28dp"
+
+                app:cornerRadius="10dp"
+                app:strokeColor="#FFFF0000"
+                app:strokeWidth="2.5dp"
+                app:backgroundTint="@color/black"
+                app:rippleColor="@color/white"
+
                 app:layout_constraintTop_toBottomOf="@+id/edit_text_id"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"/>
+                app:layout_constraintEnd_toEndOf="parent" />
 
             <!-- 완료 버튼 -->
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/button_complete"
                 android:layout_width="0dp"
                 android:layout_height="56dp"
@@ -166,16 +176,22 @@
                 android:layout_marginStart="32dp"
                 android:layout_marginEnd="32dp"
                 android:text="완료"
-                android:textColor="@color/black"
+                android:textColor="@color/white"
                 android:textSize="18sp"
                 android:textStyle="bold"
                 android:fontFamily="@font/notable_regular"
-                android:background="@drawable/bg_input"
-                android:backgroundTint="@color/white"
-                app:cornerRadius="28dp"
+
+                app:cornerRadius="10dp"
+                app:strokeColor="@color/white"
+                app:strokeWidth="2.5dp"
+                app:backgroundTint="@color/black"
+                app:rippleColor="@color/white"
+
                 app:layout_constraintTop_toBottomOf="@+id/button_logout"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"/>
+                app:layout_constraintEnd_toEndOf="parent" />
+
+
 
         </androidx.constraintlayout.widget.ConstraintLayout>
     </ScrollView>
